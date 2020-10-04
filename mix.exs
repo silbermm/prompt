@@ -7,6 +7,7 @@ defmodule Prompt.MixProject do
       description: "Build interactive CLI's",
       version: "0.1.0",
       elixir: "~> 1.10",
+      package: package(),
       dialyzer: [
         plt_file: {:no_warn, "priv/plts/dialyzer.plt"},
         flags: ["-Wunmatched_returns", :error_handling, :race_conditions, :underspecs]
