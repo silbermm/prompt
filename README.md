@@ -3,7 +3,9 @@
 
 # Prompt
 
-Easily build interactive CLI's in Elixir
+**STILL A WORK IN PROGRESS**
+
+Easily build interactive CLI's in Elixir. 
 
 ## Installation
 

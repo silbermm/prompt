@@ -4,14 +4,19 @@ defmodule Prompt.MixProject do
   def project do
     [
       app: :prompt,
-      version: "0.1.0",
+      description: "Build interactive CLI's",
+      version: "0.1.1",
       elixir: "~> 1.10",
+      package: package(),
+      dialyzer: [
+        plt_file: {:no_warn, "priv/plts/dialyzer.plt"},
+        flags: ["-Wunmatched_returns", :error_handling, :race_conditions, :underspecs]
+      ],
       start_permanent: Mix.env() == :prod,
       deps: deps()
     ]
   end
 
-  # Run "mix help compile.app" to learn about applications.
   def application do
     [
       extra_applications: [:logger],
@@ -19,11 +24,21 @@ defmodule Prompt.MixProject do
     ]
   end
 
-  # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      # {:dep_from_hexpm, "~> 0.3.0"},
-      # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
+      {:credo, "~> 1.4", only: [:dev, :test], runtime: false},
+      {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
+      {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
+      {:stream_data, "~> 0.5.0", only: [:dev, :test]}
+    ]
+  end
+
+  defp package do
+    [
+      licenses: ["GPL-3.0-or-later"],
+      files: ["lib", "mix.exs", "README.md", "COPYING*"],
+      maintainers: ["Matt Silbernagel"],
+      links: %{:GitHub => "https://github.com/silbermm/prompt"}
     ]
   end
 end
