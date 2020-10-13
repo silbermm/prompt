@@ -18,9 +18,10 @@ defmodule Prompt do
   @moduledoc """
   Build interactive command line interfaces.
 
-    * `confirm/1` prompt asks the user for a yes or no answer
-    * `select/2`  prompt the user to choose one of several options
-    * `text/1`    prompt for free form text
+    * `confirm/1`   prompt asks the user for a yes or no answer
+    * `select/2`    prompt the user to choose one of several options
+    * `text/1`      prompt for free form text
+    * `password/1`  prompt for a password or other info that needs to be hidden
   """
 
   alias IO.ANSI
@@ -166,5 +167,40 @@ defmodule Prompt do
   catch
     _kind, _error ->
       show_select_error(display, choices, opts)
+  end
+
+  @doc """
+  Prompt the user for input, but conceal the users typing.
+
+  Available options:
+
+    * color: A color from the `IO.ANSI` module
+
+  ## Examples
+
+      iex> Prompt.password("Enter your passsword")
+      Enter your password: 
+      iex> "password"
+  """
+  @spec password(String.t(), keyword()) :: String.t()
+  def password(display, opts \\ []) do
+    color = Keyword.get(opts, :color, ANSI.default_color())
+    write(color)
+
+    write("#{display}: #{ANSI.conceal()}")
+
+    case read(:stdio, :line) do
+      :eof ->
+        :error
+
+      {:error, _reason} ->
+        :error
+
+      answer ->
+        write(ANSI.reset())
+
+        answer
+        |> String.trim()
+    end
   end
 end
