@@ -21,5 +21,4 @@ end
 
 ## Usage
 
-...
-
+[Read the documentation](https://hexdocs.pm/prompt/Prompt.html)
