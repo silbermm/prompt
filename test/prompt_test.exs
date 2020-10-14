@@ -51,14 +51,14 @@ defmodule PromptTest do
       assert capture_io("3", fn ->
                Prompt.select("Which email?", ["t@t.com", "a@a.com"])
              end) ==
-               "\e[39m\e[1m\e[1B\e[1000D\e[2C[0] t@t.com\e[1m\e[1B\e[1000D\e[2C[1] a@a.com\e[2B\e[1000D\e[0m\e[39mWhich email? [0-1]:\e[0m \e[31mEnter a number from 0-1: \e[0m"
+               "\e[39m\e[1m\e[1B\e[1000D\e[2C[0] t@t.com\e[1m\e[1B\e[1000D\e[2C[1] a@a.com\e[2B\e[1000D\e[0m\e[39mWhich email? [0-1]:\e[0m \e[31mEnter a number from 0-1: \e[0m "
     end
 
     test "requires valid number" do
       assert capture_io("one", fn ->
                Prompt.select("Which email?", ["t@t.com", "a@a.com"])
              end) ==
-               "\e[39m\e[1m\e[1B\e[1000D\e[2C[0] t@t.com\e[1m\e[1B\e[1000D\e[2C[1] a@a.com\e[2B\e[1000D\e[0m\e[39mWhich email? [0-1]:\e[0m \e[31mEnter a number from 0-1: \e[0m"
+               "\e[39m\e[1m\e[1B\e[1000D\e[2C[0] t@t.com\e[1m\e[1B\e[1000D\e[2C[1] a@a.com\e[2B\e[1000D\e[0m\e[39mWhich email? [0-1]:\e[0m \e[31mEnter a number from 0-1: \e[0m "
     end
   end
 

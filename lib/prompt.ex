@@ -22,6 +22,7 @@ defmodule Prompt do
     * `select/2`    prompt the user to choose one of several options
     * `text/1`      prompt for free form text
     * `password/1`  prompt for a password or other info that needs to be hidden
+    * `display/1`   displays text on the screen
   """
 
   alias IO.ANSI
@@ -40,21 +41,18 @@ defmodule Prompt do
   ## Examples
 
       iex> Prompt.confirm("Send the email?")
-      Send the email? (Y/n): Y
+      "Send the email? (Y/n):" Y
       iex> :yes
 
       iex> Prompt.confirm("Send the email?", default_answer: :no)
-      Send the email? (y/N): [enter]
+      "Send the email? (y/N):" [enter]
       iex> :no
 
   """
   @spec confirm(String.t(), keyword()) :: :yes | :no | :error
   def confirm(question, opts \\ []) do
     default_answer = Keyword.get(opts, :default_answer, :yes)
-    color = Keyword.get(opts, :color, ANSI.default_color())
-
-    write(color <> "#{question} #{confirm_text(default_answer)}")
-    write(ANSI.reset() <> " ")
+    display("#{question} #{confirm_text(default_answer)}", opts)
 
     case read(:stdio, :line) do
       :eof -> :error
@@ -88,14 +86,12 @@ defmodule Prompt do
   ## Examples
 
       iex> Prompt.text("Enter your email")
-      Enter your email: t@t.com
+      "Enter your email:" t@t.com
       iex> t@t.com
   """
   @spec text(String.t(), keyword()) :: String.t()
   def text(display, opts \\ []) do
-    color = Keyword.get(opts, :color, ANSI.default_color())
-    write(color <> "#{display}:")
-    write(ANSI.reset() <> " ")
+    display("#{display}:", opts)
 
     case read(:stdio, :line) do
       :eof -> :error
@@ -114,9 +110,9 @@ defmodule Prompt do
   ## Examples
 
       iex> Prompt.select("Choose One", ["Choice A", "Choice B"])
-        [0] Choice A
-        [1] Choice B
-      Choose One [0-1]: 1
+      "  [0] Choice A"
+      "  [1] Choice B"
+      "Choose One [0-1]:" 1
       iex> "Choice B"
   """
   @spec select(String.t(), list(String.t()), keyword()) :: String.t() | :error
@@ -131,7 +127,7 @@ defmodule Prompt do
 
     write(ANSI.cursor_down(2) <> ANSI.cursor_left(1000))
     write(ANSI.reset() <> color <> "#{display} [0-#{Enum.count(choices) - 1}]:")
-    write(ANSI.reset() <> " ")
+    reset()
 
     read_select_choice(display, choices, opts)
   end
@@ -153,7 +149,7 @@ defmodule Prompt do
 
   defp show_select_error(display, choices, opts) do
     write(ANSI.red() <> "Enter a number from 0-#{Enum.count(choices) - 1}: ")
-    write(ANSI.reset())
+    reset()
     read_select_choice(display, choices, opts)
   end
 
@@ -179,15 +175,12 @@ defmodule Prompt do
   ## Examples
 
       iex> Prompt.password("Enter your passsword")
-      Enter your password: 
-      iex> "password"
+      "Enter your password:"
+      iex> "super_secret_passphrase"
   """
   @spec password(String.t(), keyword()) :: String.t()
   def password(display, opts \\ []) do
-    color = Keyword.get(opts, :color, ANSI.default_color())
-    write(color)
-
-    write("#{display}: #{ANSI.conceal()}")
+    display("#{display}: #{ANSI.conceal()}", opts)
 
     case read(:stdio, :line) do
       :eof ->
@@ -197,10 +190,32 @@ defmodule Prompt do
         :error
 
       answer ->
-        write(ANSI.reset())
+        reset()
 
         answer
         |> String.trim()
     end
   end
+
+  @doc """
+  Writes text to the screen.
+
+  Available options:
+
+    * color: A color from the `IO.ANSI` module
+
+  ## Examples
+
+      iex> Prompt.display("Hello from the terminal!")
+      "Hello from the terminal!"
+      iex>
+  """
+  @spec display(String.t(), keyword()) :: :ok
+  def display(text, opts \\ []) do
+    color = Keyword.get(opts, :color, ANSI.default_color())
+    write(color <> text)
+    reset()
+  end
+
+  defp reset(), do: write(ANSI.reset() <> " ")
 end

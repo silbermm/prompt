@@ -5,7 +5,7 @@ defmodule Prompt.MixProject do
     [
       app: :prompt,
       description: "Build interactive CLI's",
-      version: "0.1.2",
+      version: "0.1.3",
       elixir: "~> 1.10",
       package: package(),
       source_url: "https://github.com/silbermm/prompt",
@@ -30,8 +30,7 @@ defmodule Prompt.MixProject do
     [
       {:credo, "~> 1.4", only: [:dev, :test], runtime: false},
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
-      {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
-      {:stream_data, "~> 0.5.0", only: [:dev, :test]}
+      {:dialyxir, "~> 1.0", only: [:dev], runtime: false}
     ]
   end
 
