@@ -180,7 +180,8 @@ defmodule Prompt do
   """
   @spec password(String.t(), keyword()) :: String.t()
   def password(display, opts \\ []) do
-    display("#{display}: #{ANSI.conceal()}", opts)
+    color = Keyword.get(opts, :color, ANSI.default_color())
+    write(color <> "#{display}: #{ANSI.conceal()}")
 
     case read(:stdio, :line) do
       :eof ->
@@ -191,7 +192,6 @@ defmodule Prompt do
 
       answer ->
         reset()
-
         answer
         |> String.trim()
     end
