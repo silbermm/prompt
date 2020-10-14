@@ -121,11 +121,11 @@ defmodule Prompt do
     write(color)
 
     for {choice, number} <- Enum.with_index(choices) do
-      write(ANSI.bright() <> ANSI.cursor_down() <> ANSI.cursor_left(1000) <> ANSI.cursor_right(2))
+      write(ANSI.bright() <> "\n" <> ANSI.cursor_left(1000) <> ANSI.cursor_right(2))
       write("[#{number}] #{choice}")
     end
 
-    write(ANSI.cursor_down(2) <> ANSI.cursor_left(1000))
+    write("\n\n" <> ANSI.cursor_left(1000))
     write(ANSI.reset() <> color <> "#{display} [0-#{Enum.count(choices) - 1}]:")
     reset()
 
