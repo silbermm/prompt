@@ -7,21 +7,21 @@ defmodule PromptTest do
       assert capture_io("y", fn ->
                result = Prompt.confirm("Send the email?")
                assert result == :yes
-             end) == "\e[39mSend the email? (Y/n):\e[0m "
+             end) == "\e[0m\e[39mSend the email? (Y/n): \e[0m"
     end
 
     test "handle confirm - default" do
       assert capture_io("\n", fn ->
                result = Prompt.confirm("Send the email?", [])
                assert result == :yes
-             end) == "\e[39mSend the email? (Y/n):\e[0m "
+             end) == "\e[0m\e[39mSend the email? (Y/n): \e[0m"
     end
 
     test "handle confirm - default to no" do
       assert capture_io("\n", fn ->
                result = Prompt.confirm("Send the email?", default_answer: :no)
                assert result == :no
-             end) == "\e[39mSend the email? (y/N):\e[0m "
+             end) == "\e[0m\e[39mSend the email? (y/N): \e[0m"
     end
 
     test "handle confirm - no" do
@@ -34,7 +34,7 @@ defmodule PromptTest do
     test "handle confirm - unknown answer" do
       assert capture_io("asdf", fn ->
                Prompt.confirm("Send the email?", [])
-             end) == "\e[39mSend the email? (Y/n):\e[0m \e[39mSend the email? (Y/n):\e[0m "
+             end) == "\e[0m\e[39mSend the email? (Y/n): \e[0m\e[0m\e[39mSend the email? (Y/n): \e[0m"
     end
   end
 
