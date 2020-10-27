@@ -28,7 +28,7 @@ defmodule PromptTest do
       assert capture_io("n", fn ->
                result = Prompt.confirm("Send the email?", [])
                assert result == :no
-             end) == "\e[39mSend the email? (Y/n):\e[0m "
+             end) == "\e[0m\e[39mSend the email? (Y/n): \e[0m"
     end
 
     test "handle confirm - unknown answer" do
