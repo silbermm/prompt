@@ -52,7 +52,7 @@ defmodule Prompt do
   @spec confirm(String.t(), keyword()) :: :yes | :no | :error
   def confirm(question, opts \\ []) do
     default_answer = Keyword.get(opts, :default_answer, :yes)
-    display("#{question} #{confirm_text(default_answer)}", opts)
+    display("#{question} #{confirm_text(default_answer)} ", opts)
 
     case read(:stdio, :line) do
       :eof -> :error
@@ -200,6 +200,8 @@ defmodule Prompt do
   @doc """
   Writes text to the screen.
 
+  Takes a single string argument or a list of strings where each item in the list will be diplayed on a new line.
+
   Available options:
 
     * color: A color from the `IO.ANSI` module
@@ -208,13 +210,22 @@ defmodule Prompt do
 
       iex> Prompt.display("Hello from the terminal!")
       "Hello from the terminal!"
-      iex>
+
+      iex> Prompt.display(["Hello", "from", "the", "terminal"])
+      "Hello"
+      "from"
+      "the"
+      "terminal"
   """
-  @spec display(String.t(), keyword()) :: :ok
-  def display(text, opts \\ []) do
+  @spec display(String.t() | list(String.t()), keyword()) :: :ok
+  def display(text, opts \\ []), do: _display(text, opts)
+  defp _display(texts, opts) when is_list(texts) do
     color = Keyword.get(opts, :color, ANSI.default_color())
-    write(color <> text)
-    reset()
+    Enum.map(texts, &(display(&1 <> "\n", opts)))
+  end
+  defp _display(text, opts) do
+    color = Keyword.get(opts, :color, ANSI.default_color())
+    write(ANSI.reset() <> color <> text <> ANSI.reset())
   end
 
   defp reset(), do: write(ANSI.reset() <> " ")
