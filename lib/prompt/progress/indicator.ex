@@ -15,8 +15,9 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule Prompt.Progress.Indicator do
-  use GenServer, restart: :temporary
+  @moduledoc false
 
+  use GenServer, restart: :temporary
   import IO
   alias IO.ANSI
 

@@ -28,10 +28,18 @@ defmodule Prompt.Progress do
   the output to the screen.
   """
 
+  @doc """
+  Start a progress indicator.
+
+  Currently only a spinner is supported and is used by default.
+  """
   def start(opts \\ []) do
     Prompt.Progress.Supervisor.start_progress(opts)
   end
 
+  @doc """
+  Stop a currrently displaying progress indicator.
+  """
   def finish(progress) do
     Prompt.Progress.Supervisor.stop_progress(progress) 
   end
