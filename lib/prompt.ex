@@ -191,7 +191,7 @@ defmodule Prompt do
         :error
 
       answer ->
-        reset()
+        write(ANSI.reset())
         answer
         |> String.trim()
     end
@@ -205,6 +205,7 @@ defmodule Prompt do
   Available options:
 
     * color: A color from the `IO.ANSI` module
+    * position: :left | :right --- Print the content starting from the leftmost position or the rightmost position
 
   ## Examples
 
@@ -220,13 +221,27 @@ defmodule Prompt do
   @spec display(String.t() | list(String.t()), keyword()) :: :ok
   def display(text, opts \\ []), do: _display(text, opts)
   defp _display(texts, opts) when is_list(texts) do
-    color = Keyword.get(opts, :color, ANSI.default_color())
     Enum.map(texts, &(display(&1 <> "\n", opts)))
   end
   defp _display(text, opts) do
     color = Keyword.get(opts, :color, ANSI.default_color())
+    if Keyword.has_key?(opts, :position) do
+      position(opts, text)
+    end
+
     write(ANSI.reset() <> color <> text <> ANSI.reset())
   end
 
   defp reset(), do: write(ANSI.reset() <> " ")
+
+  defp position(opts, content) do
+    position = Keyword.get(opts, :position)
+    _position(position, content)
+  end
+
+  defp _position(:left, _), do: write(ANSI.cursor_left(10000))
+  defp _position(:right, content) do
+    move_left = String.length(content)
+    write(ANSI.cursor_right(10000) <> ANSI.cursor_left(move_left))
+  end
 end

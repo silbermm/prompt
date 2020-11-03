@@ -23,8 +23,7 @@ defmodule Prompt.Application do
 
   def start(_type, _args) do
     children = [
-      # Starts a worker by calling: Prompt.Worker.start_link(arg)
-      # {Prompt.Worker, arg}
+      Prompt.Progress.Supervisor
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
