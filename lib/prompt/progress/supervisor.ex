@@ -18,7 +18,6 @@ defmodule Prompt.Progress.Supervisor do
   @moduledoc false
 
   use DynamicSupervisor
-  alias __MODULE__
 
   @doc false
   def start_link(_), do: DynamicSupervisor.start_link(__MODULE__, :ok, name: ProgressSupervisor)
