@@ -239,9 +239,9 @@ defmodule Prompt do
     _position(position, content)
   end
 
-  defp _position(:left, _), do: write(ANSI.cursor_left(10000))
+  defp _position(:left, _), do: write(ANSI.cursor_left(10_000))
   defp _position(:right, content) do
     move_left = String.length(content)
-    write(ANSI.cursor_right(10000) <> ANSI.cursor_left(move_left))
+    write(ANSI.cursor_right(10_000) <> ANSI.cursor_left(move_left))
   end
 end
