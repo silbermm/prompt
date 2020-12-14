@@ -222,7 +222,7 @@ defmodule Prompt do
       "the"
       "terminal"
   """
-  @spec display(String.t() | list(String.t()), keyword()) :: String.t() | list(String.t())
+  @spec display(String.t() | list(String.t()), keyword()) :: :ok
   def display(text, opts \\ []), do: _display(text, opts)
 
   defp _display(texts, opts) when is_list(texts) do
@@ -244,8 +244,6 @@ defmodule Prompt do
     else
       write(text <> "\n")
     end
-
-    text
   end
 
   defp reset(), do: write(ANSI.reset() <> " ")
