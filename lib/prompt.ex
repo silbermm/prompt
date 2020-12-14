@@ -237,14 +237,12 @@ defmodule Prompt do
       position(opts, text)
     end
 
-    text = ANSI.reset() <> color <> text <> ANSI.reset()
-
-    if trim do
-      write(text)
-    else
-      write(text <> "\n")
-    end
+    text = ANSI.reset() <> color <> text <> ANSI.reset() <> without_newline(trim)
+    write(text)
   end
+
+  defp without_newline(true), do: ""
+  defp without_newline(false), do: "\n"
 
   defp reset(), do: write(ANSI.reset() <> " ")
 
