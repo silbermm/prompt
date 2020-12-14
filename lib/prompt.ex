@@ -52,6 +52,7 @@ defmodule Prompt do
   @spec confirm(String.t(), keyword()) :: :yes | :no | :error
   def confirm(question, opts \\ []) do
     default_answer = Keyword.get(opts, :default_answer, :yes)
+    opts = Keyword.put(opts, :trim, true)
     display("#{question} #{confirm_text(default_answer)} ", opts)
 
     case read(:stdio, :line) do
@@ -91,7 +92,8 @@ defmodule Prompt do
   """
   @spec text(String.t(), keyword()) :: String.t()
   def text(display, opts \\ []) do
-    display("#{display}:", opts)
+    opts = Keyword.put(opts, :trim, true)
+    display("#{display}: ", opts)
 
     case read(:stdio, :line) do
       :eof -> :error
@@ -110,9 +112,9 @@ defmodule Prompt do
   ## Examples
 
       iex> Prompt.select("Choose One", ["Choice A", "Choice B"])
-      "  [0] Choice A"
-      "  [1] Choice B"
-      "Choose One [0-1]:" 1
+      "  [1] Choice A"
+      "  [2] Choice B"
+      "Choose One [1-2]:" 1
       iex> "Choice B"
   """
   @spec select(String.t(), list(String.t()), keyword()) :: String.t() | :error
@@ -122,11 +124,11 @@ defmodule Prompt do
 
     for {choice, number} <- Enum.with_index(choices) do
       write(ANSI.bright() <> "\n" <> ANSI.cursor_left(1000) <> ANSI.cursor_right(2))
-      write("[#{number}] #{choice}")
+      write("[#{number + 1}] #{choice}")
     end
 
     write("\n\n" <> ANSI.cursor_left(1000))
-    write(ANSI.reset() <> color <> "#{display} [0-#{Enum.count(choices) - 1}]:")
+    write(ANSI.reset() <> color <> "#{display} [1-#{Enum.count(choices)}]:")
     reset()
 
     read_select_choice(display, choices, opts)
@@ -148,13 +150,13 @@ defmodule Prompt do
   end
 
   defp show_select_error(display, choices, opts) do
-    write(ANSI.red() <> "Enter a number from 0-#{Enum.count(choices) - 1}: ")
+    write(ANSI.red() <> "Enter a number from 1-#{Enum.count(choices)}: ")
     reset()
     read_select_choice(display, choices, opts)
   end
 
   defp evaluate_choice_answer(answer, display, choices, opts) do
-    answer_number = String.to_integer(answer)
+    answer_number = String.to_integer(answer) - 1
 
     case Enum.at(choices, answer_number) do
       nil -> show_select_error(display, choices, opts)
@@ -192,6 +194,7 @@ defmodule Prompt do
 
       answer ->
         write(ANSI.reset())
+
         answer
         |> String.trim()
     end
@@ -205,6 +208,7 @@ defmodule Prompt do
   Available options:
 
     * color: A color from the `IO.ANSI` module
+    * trim: true | false --- Defaults to false (will put a `\n` at the end of the text
     * position: :left | :right --- Print the content starting from the leftmost position or the rightmost position
 
   ## Examples
@@ -218,18 +222,30 @@ defmodule Prompt do
       "the"
       "terminal"
   """
-  @spec display(String.t() | list(String.t()), keyword()) :: :ok
+  @spec display(String.t() | list(String.t()), keyword()) :: String.t() | list(String.t())
   def display(text, opts \\ []), do: _display(text, opts)
+
   defp _display(texts, opts) when is_list(texts) do
-    Enum.map(texts, &(display(&1 <> "\n", opts)))
+    Enum.map(texts, &display(&1, opts))
   end
+
   defp _display(text, opts) do
+    trim = Keyword.get(opts, :trim, false)
     color = Keyword.get(opts, :color, ANSI.default_color())
+
     if Keyword.has_key?(opts, :position) do
       position(opts, text)
     end
 
-    write(ANSI.reset() <> color <> text <> ANSI.reset())
+    text = ANSI.reset() <> color <> text <> ANSI.reset()
+
+    if trim do
+      write(text)
+    else
+      write(text <> "\n")
+    end
+
+    text
   end
 
   defp reset(), do: write(ANSI.reset() <> " ")
@@ -240,6 +256,7 @@ defmodule Prompt do
   end
 
   defp _position(:left, _), do: write(ANSI.cursor_left(10_000))
+
   defp _position(:right, content) do
     move_left = String.length(content)
     write(ANSI.cursor_right(10_000) <> ANSI.cursor_left(move_left))

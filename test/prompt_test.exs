@@ -34,31 +34,32 @@ defmodule PromptTest do
     test "handle confirm - unknown answer" do
       assert capture_io("asdf", fn ->
                Prompt.confirm("Send the email?", [])
-             end) == "\e[0m\e[39mSend the email? (Y/n): \e[0m\e[0m\e[39mSend the email? (Y/n): \e[0m"
+             end) ==
+               "\e[0m\e[39mSend the email? (Y/n): \e[0m\e[0m\e[39mSend the email? (Y/n): \e[0m"
     end
   end
 
   describe "select" do
     test "returns selected option" do
-      assert capture_io("0", fn ->
+      assert capture_io("1", fn ->
                result = Prompt.select("Which email?", ["t@t.com", "a@a.com"])
                assert result == "t@t.com"
              end) ==
-               "\e[39m\e[1m\n\e[1000D\e[2C[0] t@t.com\e[1m\n\e[1000D\e[2C[1] a@a.com\n\n\e[1000D\e[0m\e[39mWhich email? [0-1]:\e[0m "
+               "\e[39m\e[1m\n\e[1000D\e[2C[1] t@t.com\e[1m\n\e[1000D\e[2C[2] a@a.com\n\n\e[1000D\e[0m\e[39mWhich email? [1-2]:\e[0m "
     end
 
     test "requires choice from list" do
       assert capture_io("3", fn ->
                Prompt.select("Which email?", ["t@t.com", "a@a.com"])
              end) ==
-               "\e[39m\e[1m\n\e[1000D\e[2C[0] t@t.com\e[1m\n\e[1000D\e[2C[1] a@a.com\n\n\e[1000D\e[0m\e[39mWhich email? [0-1]:\e[0m \e[31mEnter a number from 0-1: \e[0m "
+               "\e[39m\e[1m\n\e[1000D\e[2C[1] t@t.com\e[1m\n\e[1000D\e[2C[2] a@a.com\n\n\e[1000D\e[0m\e[39mWhich email? [1-2]:\e[0m \e[31mEnter a number from 1-2: \e[0m "
     end
 
     test "requires valid number" do
       assert capture_io("one", fn ->
                Prompt.select("Which email?", ["t@t.com", "a@a.com"])
              end) ==
-               "\e[39m\e[1m\n\e[1000D\e[2C[0] t@t.com\e[1m\n\e[1000D\e[2C[1] a@a.com\n\n\e[1000D\e[0m\e[39mWhich email? [0-1]:\e[0m \e[31mEnter a number from 0-1: \e[0m "
+               "\e[39m\e[1m\n\e[1000D\e[2C[1] t@t.com\e[1m\n\e[1000D\e[2C[2] a@a.com\n\n\e[1000D\e[0m\e[39mWhich email? [1-2]:\e[0m \e[31mEnter a number from 1-2: \e[0m "
     end
   end
 
