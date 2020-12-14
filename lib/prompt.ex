@@ -247,8 +247,9 @@ defmodule Prompt do
   defp reset(), do: write(ANSI.reset() <> " ")
 
   defp position(opts, content) do
-    position = Keyword.get(opts, :position)
-    _position(position, content)
+    opts
+    |> Keyword.get(:position)
+    |> _position(content)
   end
 
   defp _position(:left, _), do: write(ANSI.cursor_left(10_000))
