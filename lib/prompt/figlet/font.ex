@@ -7,25 +7,33 @@ defmodule Prompt.Figlet.Font do
   @lower_letters for x <- ?a..?z, do: <<x :: utf8>>
   @characters_list @punctuation1 ++ @numbers ++ @punctuation2 ++ @upper_letters ++ @punctuation3 ++ @lower_letters
 
-  @font_file :prompt |> :code.priv_dir() |> Path.join("fonts/slant.flf")
+  @font_file :prompt |> :code.priv_dir() |> Path.join("fonts/bubble.flf")
 
   @stream File.stream!(@font_file)
 
   def get_character(character) do
-    characters_list = @characters_list
-    esc_seq = get_escape_sequence()
-    char_index = get_character_index(character)
-    _get_character(char_index, esc_seq)
+    character
+    |> get_character_index()
+    |> _get_character(get_escape_sequence())
   end
 
-  def _get_character(char_index, esc_seq) do
-    # find the where the esc_seq happens in the font file the (char_index + 2)th time
-    #   the first time it appears it is the marker of what the sequence is
-    #   and we need to add on because the char_index is 0 based
+  defp _get_character(char_index, esc_seq) do
+    # find the where the esc_seq happens in the font file the (char_index + 1)th time
     @stream
     |> drop_intro
     |> Stream.chunk_every(Enum.count(esc_seq))
     |> Enum.at(char_index + 1)
+    |> drop_esc_characters(esc_seq)
+  end
+
+  defp drop_esc_characters(chars, esc_chars) do
+    chars
+    |> Enum.zip(esc_chars)
+    |> Enum.map(fn {char, esc_char} -> 
+      # remove the esc_char from the end of the char (ignore newline if exists)
+      [actual, _] = String.split(char, esc_char)
+      actual <> "\n"
+    end)
   end
 
   defp get_escape_sequence() do
@@ -41,7 +49,6 @@ defmodule Prompt.Figlet.Font do
   defp remove_filler(<< "\d" <> char >>), do: char
   defp remove_filler(<< "$" <> char >>), do: char
 
-
   defp get_character_index(character) do
     indexes = Enum.with_index(@characters_list) 
     case Enum.find(indexes, fn {char, _} -> char == character end) do
@@ -51,7 +58,7 @@ defmodule Prompt.Figlet.Font do
   end
 
   defp drop_intro(stream) do
-    @stream
+    stream
     |> Stream.drop_while(fn line -> 
       line = String.trim(line)
       !(String.starts_with?(line, "\d") || String.starts_with?(line, "$")) end)
