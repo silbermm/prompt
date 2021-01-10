@@ -138,7 +138,6 @@ defmodule Prompt do
     case read(:stdio, :line) do
       :eof ->
         :error
-
       {:error, _reason} ->
         :error
 

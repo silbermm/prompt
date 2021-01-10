@@ -7,7 +7,7 @@ defmodule Prompt.Figlet.Font do
   @lower_letters for x <- ?a..?z, do: <<x :: utf8>>
   @characters_list @punctuation1 ++ @numbers ++ @punctuation2 ++ @upper_letters ++ @punctuation3 ++ @lower_letters
 
-  @font_file :prompt |> :code.priv_dir() |> Path.join("fonts/bubble.flf")
+  @font_file :prompt |> :code.priv_dir() |> Path.join("fonts/slant.flf")
 
   @stream File.stream!(@font_file)
 
@@ -40,14 +40,20 @@ defmodule Prompt.Figlet.Font do
     @stream
     |> drop_intro
     |> Stream.map(&String.trim/1)
-    |> Stream.take_while(fn line -> line != nil && 
-      (String.starts_with?(line, "\d") || String.starts_with?(line, "$")) end)
+    |> Stream.take_while(fn line -> !String.ends_with?(line, "@@") end)
     |> Stream.map(&remove_filler/1)
+    |> Stream.map(&String.trim/1)
     |> Enum.to_list
+    |> add_ending()
   end
 
-  defp remove_filler(<< "\d" <> char >>), do: char
-  defp remove_filler(<< "$" <> char >>), do: char
+  defp add_ending([first | _] = esc_seq) do
+    esc_seq ++ ["@@"]
+  end
+
+  defp remove_filler(<< "\d" <> char >>), do: String.trim(char)
+  defp remove_filler(<< "$$" <> char >>), do: String.trim(char)
+  defp remove_filler(<< "$" <> char >>), do: String.trim(char)
 
   defp get_character_index(character) do
     indexes = Enum.with_index(@characters_list) 

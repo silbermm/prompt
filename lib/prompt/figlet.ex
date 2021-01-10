@@ -7,7 +7,7 @@ defmodule Prompt.Figlet do
     # smush them together??
 
     # print them to the screen
-    _ = Enum.reduce(letters, 1, fn letter, columns ->
+    {_, r} = Enum.reduce(letters, {1, 0}, fn letter, {columns, _} ->
       rows = Enum.count(letter)
       next_columns = column_size(letter)
       Enum.each(letter, fn l -> 
@@ -15,8 +15,10 @@ defmodule Prompt.Figlet do
         IO.write(l)
       end)
       IO.write(IO.ANSI.cursor_up(rows))
-      columns + next_columns
+      {columns + next_columns, rows}
     end)
+
+    IO.write(IO.ANSI.cursor_down(r + 1))
   end
 
   defp get_letters(text, _opts) do
@@ -25,6 +27,6 @@ defmodule Prompt.Figlet do
   end
 
   defp column_size(letter_list) do
-    next_columns = letter_list |> List.first() |> String.trim_trailing("\n") |> String.length
+    letter_list |> List.first() |> String.trim_trailing("\n") |> String.length 
   end
 end
