@@ -61,6 +61,14 @@ defmodule PromptTest do
              end) ==
                "\e[39m\e[1m\n\e[1000D\e[2C[1] t@t.com\e[1m\n\e[1000D\e[2C[2] a@a.com\n\n\e[1000D\e[0m\e[39mWhich email? [1-2]:\e[0m \e[31mEnter a number from 1-2: \e[0m "
     end
+
+    test "allows list of tuples" do
+      assert capture_io("1", fn ->
+               result = Prompt.select("Which email?", [{"t@t.com", "t"}, {"a@a.com", "a"}])
+               assert result == "t"
+             end) ==
+               "\e[39m\e[1m\n\e[1000D\e[2C[1] t@t.com\e[1m\n\e[1000D\e[2C[2] a@a.com\n\n\e[1000D\e[0m\e[39mWhich email? [1-2]:\e[0m "
+    end
   end
 
   describe "text" do

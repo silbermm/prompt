@@ -105,6 +105,9 @@ defmodule Prompt do
   @doc """
   Displays options to the user denoted by numbers.
 
+  Allows for a list of 2 tuples where the first value is what is displayed
+  and the second value is what is returned to the caller.
+
   Available options:
 
     * color: A color from the `IO.ANSI` module
@@ -115,16 +118,25 @@ defmodule Prompt do
       "  [1] Choice A"
       "  [2] Choice B"
       "Choose One [1-2]:" 1
-      iex> "Choice B"
+      iex> "Choice A"
+
+      iex> Prompt.select("Choose One", [{"Choice A", 1000}, {"Choice B", 1001}])
+      "  [1] Choice A"
+      "  [2] Choice B"
+      "Choose One [1-2]:" 2
+      iex> 1001
+
   """
-  @spec select(String.t(), list(String.t()), keyword()) :: String.t() | :error
+  @spec select(String.t(), list(String.t()) | list({String.t(), any()}), keyword()) ::
+          String.t() | :error
   def select(display, choices, opts \\ []) do
+    # TODO: allow for the user to pass a list of tuples {display, return}
     color = Keyword.get(opts, :color, ANSI.default_color())
     write(color)
 
     for {choice, number} <- Enum.with_index(choices) do
       write(ANSI.bright() <> "\n" <> ANSI.cursor_left(1000) <> ANSI.cursor_right(2))
-      write("[#{number + 1}] #{choice}")
+      write_choice(choice, number)
     end
 
     write("\n\n" <> ANSI.cursor_left(1000))
@@ -133,6 +145,9 @@ defmodule Prompt do
 
     read_select_choice(display, choices, opts)
   end
+
+  defp write_choice({dis, ret}, number), do: write("[#{number + 1}] #{dis}")
+  defp write_choice(choice, number), do: write("[#{number + 1}] #{choice}")
 
   defp read_select_choice(display, choices, opts) do
     case read(:stdio, :line) do
@@ -160,6 +175,7 @@ defmodule Prompt do
 
     case Enum.at(choices, answer_number) do
       nil -> show_select_error(display, choices, opts)
+      {_, result} -> result
       result -> result
     end
   catch
