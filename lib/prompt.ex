@@ -128,7 +128,7 @@ defmodule Prompt do
 
   """
   @spec select(String.t(), list(String.t()) | list({String.t(), any()}), keyword()) ::
-          String.t() | :error
+          any() | :error
   def select(display, choices, opts \\ []) do
     # TODO: allow for the user to pass a list of tuples {display, return}
     color = Keyword.get(opts, :color, ANSI.default_color())
