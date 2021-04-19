@@ -146,7 +146,7 @@ defmodule Prompt do
     read_select_choice(display, choices, opts)
   end
 
-  defp write_choice({dis, ret}, number), do: write("[#{number + 1}] #{dis}")
+  defp write_choice({dis, _}, number), do: write("[#{number + 1}] #{dis}")
   defp write_choice(choice, number), do: write("[#{number + 1}] #{choice}")
 
   defp read_select_choice(display, choices, opts) do
@@ -226,6 +226,8 @@ defmodule Prompt do
     * color: A color from the `IO.ANSI` module
     * trim: true | false --- Defaults to false (will put a `\n` at the end of the text
     * position: :left | :right --- Print the content starting from the leftmost position or the rightmost position
+    * hide_lines_on_enter: the number of lines to hide
+      * the main use case here is a password that you may want to show the user but hide after the user has a chance to write it down, or copy it.
 
   ## Examples
 
@@ -248,13 +250,37 @@ defmodule Prompt do
   defp _display(text, opts) do
     trim = Keyword.get(opts, :trim, false)
     color = Keyword.get(opts, :color, ANSI.default_color())
+    hide = Keyword.get(opts, :hide_lines_on_enter, 0)
 
     if Keyword.has_key?(opts, :position) do
       position(opts, text)
     end
 
-    text = ANSI.reset() <> color <> text <> ANSI.reset() <> without_newline(trim)
-    write(text)
+    if hide > 0 do
+      text =
+        ANSI.reset() <>
+          color <> text <> ANSI.reset() <> without_newline(true) <> " [Press Enter continue]"
+
+      write(text)
+
+      case read(:stdio, :line) do
+        :eof -> :error
+        {:error, _reason} -> :error
+        _ -> mask_lines(hide)
+      end
+    else
+      text = ANSI.reset() <> color <> text <> ANSI.reset() <> without_newline(trim)
+      write(text)
+    end
+  end
+
+  defp mask_lines(count) do
+    write(
+      ANSI.cursor_up(count) <>
+        ANSI.clear_line() <>
+        ANSI.italic() <>
+        ANSI.light_green() <> "#######" <> ANSI.reset() <> ANSI.cursor_down(count) <> ANSI.reset()
+    )
   end
 
   defp without_newline(true), do: ""
