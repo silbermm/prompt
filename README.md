@@ -1,11 +1,11 @@
 ![prompt_with_text_lighter](https://user-images.githubusercontent.com/42816/115971052-5772c380-a514-11eb-8b43-dd49e81467f5.png)
 
 ![](https://github.com/silbermm/prompt/workflows/Build/badge.svg)
-![Hex.pm](https://img.shields.io/hexpm/v/prompt?style=flat-square)
+[![Hex.pm](https://img.shields.io/hexpm/v/prompt?style=flat-square)](https://hexdocs.pm/prompt/Prompt.html#content)
 
 **STILL A WORK IN PROGRESS**
 
-Easily build interactive CLI's in Elixir. 
+Easily build interactive CLI's in Elixir.
 
 ## Installation
 
