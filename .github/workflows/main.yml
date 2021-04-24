@@ -73,7 +73,7 @@ jobs:
       with:
         elixir-version: '1.11.4' # define the elixir version [required]
         otp-version: '23.0' # define the otp version [required]
-      - uses: actions/cache@v2
+    - uses: actions/cache@v2
       with:
         path: deps
         key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
