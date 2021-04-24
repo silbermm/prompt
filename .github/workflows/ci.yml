@@ -17,8 +17,8 @@ jobs:
     - name: Set up Elixir
       uses: erlef/setup-beam@v1
       with:
-        elixir-version: '1.11.4' # Define the elixir version [required]
-        otp-version: '23.0' # Define the OTP version [required]
+        elixir-version: '1.11.4' # define the elixir version [required]
+        otp-version: '23.0' # define the otp version [required]
     - uses: actions/cache@v2
       with:
         path: deps
@@ -44,10 +44,10 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: Set up Elixir
-      uses: actions/setup-elixir@v1
+      uses: erlef/setup-beam@v1
       with:
-        elixir-version: '1.10.3' # Define the elixir version [required]
-        otp-version: '22.3' # Define the OTP version [required]
+        elixir-version: '1.11.4' # Define the elixir version [required]
+        otp-version: '23.0' # Define the OTP version [required]
     - uses: actions/cache@v2
       with:
         path: deps
