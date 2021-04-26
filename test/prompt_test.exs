@@ -79,4 +79,13 @@ defmodule PromptTest do
              end)
     end
   end
+
+  describe "display" do
+    test "hides text on enter" do
+      assert capture_io("\n", fn ->
+               assert Prompt.display("password", mask_line: true) == :ok
+             end) ==
+               "\e[0m\e[39mpassword\e[0m [Press Enter continue]\e[1A\e[2K\e[3m\e[92m#######\e[0m\n"
+    end
+  end
 end

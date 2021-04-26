@@ -224,9 +224,9 @@ defmodule Prompt do
   Available options:
 
     * color: A color from the `IO.ANSI` module
-    * trim: true | false --- Defaults to false (will put a `\n` at the end of the text
+    * trim: true | false       --- Defaults to false (will put a `\n` at the end of the text
     * position: :left | :right --- Print the content starting from the leftmost position or the rightmost position
-    * hide_lines_on_enter: the number of lines to hide
+    * mask_line: true | false  --- Prompts the user to press enter and afterwards masks the line just printed
       * the main use case here is a password that you may want to show the user but hide after the user has a chance to write it down, or copy it.
 
   ## Examples
@@ -250,13 +250,13 @@ defmodule Prompt do
   defp _display(text, opts) do
     trim = Keyword.get(opts, :trim, false)
     color = Keyword.get(opts, :color, ANSI.default_color())
-    hide = Keyword.get(opts, :hide_lines_on_enter, 0)
+    hide = Keyword.get(opts, :mask_line, false)
 
     if Keyword.has_key?(opts, :position) do
       position(opts, text)
     end
 
-    if hide > 0 do
+    if hide do
       text =
         ANSI.reset() <>
           color <> text <> ANSI.reset() <> without_newline(true) <> " [Press Enter continue]"
@@ -266,7 +266,7 @@ defmodule Prompt do
       case read(:stdio, :line) do
         :eof -> :error
         {:error, _reason} -> :error
-        _ -> mask_lines(hide)
+        _ -> mask_line()
       end
     else
       text = ANSI.reset() <> color <> text <> ANSI.reset() <> without_newline(trim)
@@ -274,12 +274,12 @@ defmodule Prompt do
     end
   end
 
-  defp mask_lines(count) do
+  defp mask_line() do
     write(
-      ANSI.cursor_up(count) <>
+      ANSI.cursor_up(1) <>
         ANSI.clear_line() <>
         ANSI.italic() <>
-        ANSI.light_green() <> "#######" <> ANSI.reset() <> ANSI.cursor_down(count) <> ANSI.reset()
+        ANSI.light_green() <> "#######" <> ANSI.reset() <> "\n"
     )
   end
 
