@@ -89,6 +89,7 @@ defmodule Prompt do
   Available options:
 
     * default_answer: the default answer. If default isn't passed, the first is the default.
+    * color: A color from the `IO.ANSI` module
 
   ## Examples
 
