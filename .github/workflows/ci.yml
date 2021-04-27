@@ -2,8 +2,7 @@ name: Build and Test
 
 on:
   push:
-    branches-ignore:
-      - main
+    branches: '*'
   pull_request:
     branches: '*'
 
