@@ -16,9 +16,10 @@
 
 defmodule Prompt do
   @moduledoc """
-  Build interactive command line interfaces.
+  Helpers for building interactive command line interfaces.
 
     * `confirm/1`   prompt asks the user for a yes or no answer
+    * `choice/2`    prompt for asking the user to make a custom confirmation choice
     * `select/2`    prompt the user to choose one of several options
     * `text/1`      prompt for free form text
     * `password/1`  prompt for a password or other info that needs to be hidden
@@ -76,6 +77,62 @@ defmodule Prompt do
   defp _evaluate_confirm("n", _, _), do: :no
   defp _evaluate_confirm("", _, opts), do: Keyword.get(opts, :default_answer, :yes)
   defp _evaluate_confirm(_, question, opts), do: confirm(question, opts)
+
+  @doc """
+  Display a choice prompt with custom answers.
+  Takes a keyword list of answers in the form of atom to return and string to display. 
+
+  `[yes: "y", no: "n"]`
+
+  will show "(y/n)" and return `:yes` or `:no` based on the choice.
+
+  Available options:
+
+    * default_answer: the default answer. If default isn't passed, the first is the default.
+
+  ## Examples
+
+      iex> Prompt.choice("Save password?", [yes: "y", no: "n", regenerate: "r"}, default_answer: :regenerate)
+      "Save Password? (y/n/R):" [enter]
+      iex> :regenerate
+  """
+  @spec choice(String.t(), keyword(), keyword()) :: atom()
+  def choice(question, custom, opts \\ []) do
+    [{k, _} | _rest] = custom
+    default_answer = Keyword.get(opts, :default_answer, k)
+    opts = Keyword.put(opts, :trim, true)
+    display("#{question} #{choice_text(custom, default_answer)} ", opts)
+
+    case read(:stdio, :line) do
+      :eof -> :error
+      {:error, _reason} -> :error
+      answer -> _evaluate_choice(answer, custom, default_answer)
+    end
+  end
+
+  defp choice_text(custom_choices, default) do
+    lst =
+      Enum.map(custom_choices, fn {d, c} ->
+        if d == default do
+          String.upcase(c)
+        else
+          c
+        end
+      end)
+
+    "(#{Enum.join(lst, "/")}):"
+  end
+
+  defp _evaluate_choice("\n", choices, default),
+    do: choices |> Keyword.take([default]) |> List.first() |> elem(0)
+
+  defp _evaluate_choice(answer, choices, _) do
+    choices
+    |> Enum.find(fn {_k, v} ->
+      v |> String.downcase() == answer |> String.trim() |> String.downcase()
+    end)
+    |> elem(0)
+  end
 
   @doc """
   Display text on the screen and wait for the users text imput.

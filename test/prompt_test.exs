@@ -39,6 +39,33 @@ defmodule PromptTest do
     end
   end
 
+  describe "choice" do
+    test "handle custom choices" do
+      assert capture_io("y", fn ->
+               result = Prompt.choice("Send the email?", yes: "y", no: "n")
+               assert result == :yes
+             end) == "\e[0m\e[39mSend the email? (Y/n): \e[0m"
+    end
+
+    test "handle many custom choices" do
+      assert capture_io("y", fn ->
+               result = Prompt.choice("Send the email?", yes: "y", no: "n", cancel: "c")
+               assert result == :yes
+             end) == "\e[0m\e[39mSend the email? (Y/n/c): \e[0m"
+    end
+
+    test "handle many custom choices - default" do
+      assert capture_io("\n", fn ->
+               result =
+                 Prompt.choice("Send the email?", [yes: "y", no: "n", cancel: "c"],
+                   default_answer: :cancel
+                 )
+
+               assert result == :cancel
+             end) == "\e[0m\e[39mSend the email? (y/n/C): \e[0m"
+    end
+  end
+
   describe "select" do
     test "returns selected option" do
       assert capture_io("1", fn ->
