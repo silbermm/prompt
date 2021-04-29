@@ -29,15 +29,14 @@ defmodule Prompt.Position do
   @spec clear_lines(pos_integer()) :: :ok
   def clear_lines(number) do
     1..number
-    |> Enum.reduce("", fn _x, acc ->
-      acc <> _clear_up()
-    end)
+    |> Enum.reduce("", &build_clear_lines_string/2)
     |> write
   end
 
-  defp _clear_up() do
-    ANSI.cursor_up() <> ANSI.clear_line()
-  end
+  @spec _clear_up() :: String.t()
+  defp _clear_up(), do: ANSI.cursor_up() <> ANSI.clear_line()
+
+  defp build_clear_lines_string(_, str), do: str <> _clear_up()
 
   @doc """
   Mask the content on the terminal `relative_line` above.
