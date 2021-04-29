@@ -29,7 +29,7 @@ defmodule Prompt.Position do
   @spec clear_lines(pos_integer()) :: :ok
   def clear_lines(number) do
     1..number
-    |> Enum.reduce("", fn x, acc ->
+    |> Enum.reduce("", fn _x, acc ->
       acc <> _clear_up()
     end)
     |> write
