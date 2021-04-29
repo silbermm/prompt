@@ -324,21 +324,12 @@ defmodule Prompt do
       case read(:stdio, :line) do
         :eof -> :error
         {:error, _reason} -> :error
-        _ -> mask_line()
+        _ -> Prompt.Position.mask_line(1)
       end
     else
       text = ANSI.reset() <> color <> text <> ANSI.reset() <> without_newline(trim)
       write(text)
     end
-  end
-
-  defp mask_line() do
-    write(
-      ANSI.cursor_up(1) <>
-        ANSI.clear_line() <>
-        ANSI.italic() <>
-        ANSI.light_green() <> "#######" <> ANSI.reset() <> "\n"
-    )
   end
 
   defp without_newline(true), do: ""
