@@ -46,13 +46,18 @@ defmodule Prompt.Position do
   """
   @spec mask_line(pos_integer()) :: :ok
   def mask_line(relative_line) do
-    write(
+    line_output =
       ANSI.cursor_up(relative_line) <>
         ANSI.clear_line() <>
         ANSI.italic() <>
         ANSI.light_green() <>
         "#######" <>
-        ANSI.reset() <> "\n" <> ANSI.cursor_down(relative_line - 1)
-    )
+        ANSI.reset() <> "\n"
+
+    if relative_line - 1 <= 0 do
+      write(line_output)
+    else
+      write(line_output <> ANSI.cursor_down(relative_line - 1))
+    end
   end
 end
