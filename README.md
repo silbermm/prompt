@@ -41,7 +41,7 @@ Prompt.confirm("Are you sure?", default_answer: :no)
 Returns `:yes` or `:no` based on the answer
 
 ### Custom confirmation choices
-Sometimes yes/no are the only choices a user can make, this method allow you to pass any choices as the confirmation.
+Sometimes yes/no aren't the only choices a user can make, this method allows you to pass any choices as the confirmation.
 ```elixir
 Prompt.choice("Accept, Reload or Cancel", accept: "a", reload: "r", cancel: "c")
 ```
@@ -51,3 +51,18 @@ displays
 ```
 
 Returns the key of the answer i.e `:accept`, `:reload` or `cancel` in this exammple
+
+### List of selections
+To show the user a list of options to select from
+
+```elixir
+Prompt.select("Choose a protocol", ["file://", "ssh://", "ftp://"])
+```
+Displays:
+```bash
+  [1] file://
+  [2] ssh://
+  [3] ftp://
+Choose a protocol [1-3]:
+```
+and returns a string of their choice
