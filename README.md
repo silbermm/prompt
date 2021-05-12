@@ -63,6 +63,6 @@ Displays:
   [1] file://
   [2] ssh://
   [3] ftp://
-Choose a protocol [1-3]:
+> Choose a protocol [1-3]:
 ```
 and returns a string of their choice
