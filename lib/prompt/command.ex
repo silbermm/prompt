@@ -87,12 +87,20 @@ defmodule Prompt.Command do
 
   @doc false
   defmacro __using__(_opts) do
-    quote location: :keep do
+    quote do
       @behaviour Prompt.Command
       import Prompt
 
       @doc false
       def help() do
+        case Code.ensure_compiled(__MODULE__) do
+          {:module, _} -> IO.inspect("compiled")
+          _ -> IO.inspect("nope")
+        end
+
+        IO.inspect(__MODULE__)
+        IO.inspect(Code.fetch_docs(__MODULE__))
+
         help =
           case Code.fetch_docs(__MODULE__) do
             {:docs_v1, _, :elixir, _, :none, _, _} -> "Help not available"

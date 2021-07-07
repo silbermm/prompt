@@ -1,5 +1,5 @@
 # Prompt - library to help create interative CLI in Elixir
-# Copyright (C) 2020  Matt Silbernagel
+# Copyright (C) 2021  Matt Silbernagel
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -348,5 +348,32 @@ defmodule Prompt do
   defp _position(:right, content) do
     move_left = String.length(content)
     write(ANSI.cursor_right(10_000) <> ANSI.cursor_left(move_left))
+  end
+
+  @doc """
+  Print an ASCII table of data. Requires a list of lists as input.
+
+  ## Examples
+
+      iex> Prompt.table([["Hello", "from", "the", "terminal!"],["this", "is", "another", "row"]])
+      "
+       +-------+------+---------+----------+
+       | Hello | from | the     | terminal |
+       +-------+------+---------+----------+
+       | this  | is   | another | row      |
+       +-------+------+---------+----------+
+      "
+  """
+  @spec table(list(list()), keyword()) :: :ok
+  def table(matrix, opts \\ []) when is_list(matrix) do
+    tbl = Prompt.Table.new(matrix)
+    row_delimiter = Prompt.Table.row_delimiter(tbl)
+
+    write(row_delimiter)
+
+    for row <- matrix do
+      write(Prompt.Table.row(tbl, row))
+      write(row_delimiter)
+    end
   end
 end
