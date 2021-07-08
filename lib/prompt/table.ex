@@ -10,14 +10,15 @@ defmodule Prompt.Table do
           column_count: number(),
           row_count: number(),
           columns_length: map(),
+          opts: Keyword.t(),
           error: nil | :invalid
         }
 
-  defstruct data: [[]], column_count: 0, row_count: 0, columns_length: %{}, error: nil
+  defstruct data: [[]], column_count: 0, row_count: 0, columns_length: %{}, error: nil, opts: []
 
-  @doc ""
-  @spec new(input()) :: t()
-  def new(data) do
+  @doc "Create a new Table struct"
+  @spec new(input(), Keyword.t()) :: t()
+  def new(data, opts) do
     max_column_length_map = columns_length(data)
     column_index = max_column_length_map |> Map.keys() |> List.last()
 
@@ -25,11 +26,12 @@ defmodule Prompt.Table do
       data: data,
       row_count: Enum.count(data),
       column_count: column_index + 1,
-      columns_length: max_column_length_map
+      columns_length: max_column_length_map,
+      opts: opts
     }
   end
 
-  @doc ""
+  @doc "Generate the row of data"
   @spec row(t(), list()) :: String.t()
   def row(%Table{} = table, row) do
     row_str =
@@ -41,7 +43,7 @@ defmodule Prompt.Table do
     "#{row_str}|\n"
   end
 
-  @doc ""
+  @doc "Generate the row delimiter"
   @spec row_delimiter(t()) :: String.t()
   def row_delimiter(%Table{} = table) do
     row =
@@ -55,11 +57,7 @@ defmodule Prompt.Table do
     "#{row}+\n"
   end
 
-  defp row_str(total_length) do
-    Enum.map(1..total_length, fn _ ->
-      "-"
-    end)
-  end
+  defp row_str(total_length), do: Enum.map(1..total_length, fn _ -> "-" end)
 
   defp column_str(word, column_length) do
     String.pad_trailing(word, column_length)

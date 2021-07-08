@@ -353,27 +353,56 @@ defmodule Prompt do
   @doc """
   Print an ASCII table of data. Requires a list of lists as input.
 
+  Available Options
+
+  * header: true | false (default) --- use the first element as a header of the table
+  * TODO: title: "TITLE"           --- Create a title for the table
+  * TODO: border: :normal 
+  * TODO: borer_color:
+
   ## Examples
 
       iex> Prompt.table([["Hello", "from", "the", "terminal!"],["this", "is", "another", "row"]])
       "
        +-------+------+---------+----------+
        | Hello | from | the     | terminal |
-       +-------+------+---------+----------+
        | this  | is   | another | row      |
        +-------+------+---------+----------+
       "
+
+      iex> Prompt.table([["One", "Two", "Three", "Four"], ["Hello", "from", "the", "terminal!"],["this", "is", "another", "row"]])
+      "
+       +-------+------+---------+----------+
+       | One   | Two  | Three   | Four     |
+       +-------+------+---------+----------+
+       | Hello | from | the     | terminal |
+       | this  | is   | another | row      |
+       +-------+------+---------+----------+
+      "
+
   """
   @spec table(list(list()), keyword()) :: :ok
   def table(matrix, opts \\ []) when is_list(matrix) do
-    tbl = Prompt.Table.new(matrix)
+    tbl = Prompt.Table.new(matrix, opts)
     row_delimiter = Prompt.Table.row_delimiter(tbl)
 
     write(row_delimiter)
 
+    matrix =
+      if Keyword.get(opts, :header, false) do
+        # get the first 'row'
+        headers = Enum.at(matrix, 0)
+        write(Prompt.Table.row(tbl, headers))
+        write(row_delimiter)
+        Enum.drop(matrix, 1)
+      else
+        matrix
+      end
+
     for row <- matrix do
       write(Prompt.Table.row(tbl, row))
-      write(row_delimiter)
     end
+
+    write(row_delimiter)
   end
 end
