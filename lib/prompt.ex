@@ -80,7 +80,7 @@ defmodule Prompt do
 
   @doc """
   Display a choice prompt with custom answers.
-  Takes a keyword list of answers in the form of atom to return and string to display. 
+  Takes a keyword list of answers in the form of atom to return and string to display.
 
   `[yes: "y", no: "n"]`
 
@@ -370,7 +370,7 @@ defmodule Prompt do
        +-------+------+---------+----------+
       "
 
-      iex> Prompt.table([["One", "Two", "Three", "Four"], ["Hello", "from", "the", "terminal!"],["this", "is", "another", "row"]])
+      iex> Prompt.table([["One", "Two", "Three", "Four"], ["Hello", "from", "the", "terminal!"],["this", "is", "another", "row"]], header: true)
       "
        +-------+------+---------+----------+
        | One   | Two  | Three   | Four     |
@@ -379,6 +379,15 @@ defmodule Prompt do
        | this  | is   | another | row      |
        +-------+------+---------+----------+
       "
+
+      iex> Prompt.table([["Hello", "from", "the", "terminal!"],["this", "is", "another", "row"]], title: "MY TABLE")
+      "
+       +MY TABLE------+---------+----------+
+       | Hello | from | the     | terminal |
+       | this  | is   | another | row      |
+       +-------+------+---------+----------+
+      "
+
 
   """
   @spec table(list(list()), keyword()) :: :ok
