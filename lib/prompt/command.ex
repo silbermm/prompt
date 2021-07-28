@@ -69,6 +69,7 @@ defmodule Prompt.Command do
   ```
 
   """
+
   @doc """
   Takes the options passed in via the command line and
   tramforms them into a struct that the process command can handle
@@ -93,19 +94,12 @@ defmodule Prompt.Command do
 
       @doc false
       def help() do
-        case Code.ensure_compiled(__MODULE__) do
-          {:module, _} -> IO.inspect("compiled")
-          _ -> IO.inspect("nope")
-        end
-
-        IO.inspect(__MODULE__)
-        IO.inspect(Code.fetch_docs(__MODULE__))
-
         help =
           case Code.fetch_docs(__MODULE__) do
             {:docs_v1, _, :elixir, _, :none, _, _} -> "Help not available"
             {:docs_v1, _, :elixir, _, %{"en" => module_doc}, _, _} -> module_doc
             {:error, _} -> "Help not available"
+            _ -> "Help not available"
           end
 
         display(help)

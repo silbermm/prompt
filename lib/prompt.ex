@@ -24,6 +24,7 @@ defmodule Prompt do
     * `text/1`      prompt for free form text
     * `password/1`  prompt for a password or other info that needs to be hidden
     * `display/1`   displays text on the screen
+    * `table/1`     displays data in a simple ASCII table
   """
 
   alias IO.ANSI
