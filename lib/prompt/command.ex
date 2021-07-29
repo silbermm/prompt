@@ -26,7 +26,7 @@ defmodule Prompt.Command do
   ## Example
   ```
   defmodule MyCommand do
-    @moduledoc "MyCommand's help message"
+    @moduledoc "MyCommand's help message help() is defined in the __using__ macro that prints this message if called"
 
     use Prompt.Command
 
@@ -37,13 +37,11 @@ defmodule Prompt.Command do
     end
 
     @impl true
-    def process(%{help: true}), do: help()
+    def process(%{help: true}), do: help() # this help function is defined by default in the macro that prints the @moduledoc when called
     def process(%{list: true, help: false, directory: dir}) do
       display(File.ls!(dir))
     end
 
-    @impl true
-    def help(), do: display(@moduledoc)
   end
   ```
 
@@ -66,6 +64,15 @@ defmodule Prompt.Command do
    list = Keyword.get(opts, :length, true)
    %{help: help, directory: dir, list: list}
   end
+  ```
+
+  If this is used in a release, `help()` won't print the @moduledoc correctly because releases strip documentation by default. For this to work correctly, tell the release to keep docs:
+  ```
+  releases: [
+    appname: [
+      strip_beams: [keep: ["Docs"]]
+    ]
+  ]
   ```
 
   """
