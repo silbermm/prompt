@@ -25,6 +25,7 @@ defmodule Prompt do
     * `password/1`  prompt for a password or other info that needs to be hidden
     * `display/1`   displays text on the screen
     * `table/1`     displays data in a simple ASCII table
+
   """
 
   alias IO.ANSI
@@ -358,7 +359,7 @@ defmodule Prompt do
 
   * header: true | false (default) --- use the first element as a header of the table
   * TODO: title: "TITLE"           --- Create a title for the table
-  * TODO: border: :normal 
+  * TODO: border: :normal
   * TODO: borer_color:
 
   ## Examples
@@ -414,5 +415,74 @@ defmodule Prompt do
     end
 
     write(row_delimiter)
+  end
+
+  @callback process(atom() | {atom(), Keyword.t()}) :: 0 | 1
+  @callback init(list(), list({atom(), Keyword.t()})) :: 0 | 1
+
+  defmacro __using__(opts) do
+    app = Keyword.get(opts, :otp_app, nil)
+
+    if app == nil do
+      raise ":otp_app is a required option when using Prompt"
+    end
+
+    quote(bind_quoted: [app: app]) do
+      import Prompt
+      @behaviour Prompt
+
+      @app app
+
+      @impl true
+      def init(argv, commands) do
+        argv
+        |> OptionParser.parse_head(
+          strict: [help: :boolean, version: :boolean],
+          aliases: [h: :help, v: :version]
+        )
+        |> parse_opts(commands)
+        |> process()
+      end
+
+      @impl true
+      def process(:help) do
+        help =
+          case Code.fetch_docs(__MODULE__) do
+            {:docs_v1, _, :elixir, _, :none, _, _} -> "Help not available"
+            {:docs_v1, _, :elixir, _, %{"en" => module_doc}, _, _} -> module_doc
+            {:error, _} -> "Help not available"
+            _ -> "Help not available"
+          end
+
+        display(help)
+        0
+      end
+
+      def process(:version) do
+        {:ok, vsn} = :application.get_key(@app, :vsn)
+        _ = display(List.to_string(vsn))
+        0
+      end
+
+      @impl true
+      def process({module, opts}) do
+        cmd = apply(module, :init, [opts])
+        apply(module, :process, [cmd])
+      end
+
+      defp parse_opts({[help: true], _, _}, _), do: :help
+      defp parse_opts({[version: true], _, _}, _), do: :version
+
+      defp parse_opts({[], [head | rest], _invalid}, defined_commands) do
+        res = Enum.find(defined_commands, fn {h, _} -> head == h end)
+
+        if res == nil do
+          :help
+        else
+          {_, mod} = res
+          {mod, rest}
+        end
+      end
+    end
   end
 end
