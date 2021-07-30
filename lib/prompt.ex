@@ -18,18 +18,50 @@ defmodule Prompt do
   @moduledoc """
   Helpers for building interactive command line interfaces.
 
-    * `confirm/1`   prompt asks the user for a yes or no answer
-    * `choice/2`    prompt for asking the user to make a custom confirmation choice
-    * `select/2`    prompt the user to choose one of several options
-    * `text/1`      prompt for free form text
-    * `password/1`  prompt for a password or other info that needs to be hidden
-    * `display/1`   displays text on the screen
-    * `table/1`     displays data in a simple ASCII table
+  To build a cli app that has subcommands, define a module and `use Prompt, otp_app: :your_app` then build a list of `Prompt.Command` the represent your commands and pass them to `process/2`. `--version` will pull your app version from mix.exs and `--help` will print your @moduledoc for help.
+
+  ## Example
+
+  ```elixir
+  defmodule MyApp.CLI do
+    @moduledoc "This will print when a user types `myapp --help` in the commandline"
+    use Prompt, otp_app: :my_app
+
+    # the entry point to your app, takes the command line args
+    def main(argv) do
+      commands = [
+        {"first", MyApp.CLI.FirstCommand},
+        {"second", MyApp.CLI.SecondCommand}
+      ]
+      process(argv, commands)
+    end
+  end
+  ```
+
+  The first element in the command tuple is what you expect the user to use as a command, the second is the `Prompt.Command` module that will process the command.
+
+  Assuming you are building a escript, make sure to use `MyApp.CLI` as your module.
+
+  Once built, your command will be able to take a `first` and `second` subcommand.
+
+  ```bash
+  >>> my_app first
+  ...
+  >>> my_app second
+  ...
+  >>> my_app --version
+  0.0.1 
+  ```
 
   """
 
   alias IO.ANSI
   import IO
+
+  @doc """
+  Process the command line arguments based on the defined commands
+  """
+  @callback process(list(), list({Process.Command, Keyword.t()})) :: 0 | 1
 
   @doc """
   Display a Y/n prompt.
@@ -190,7 +222,6 @@ defmodule Prompt do
   @spec select(String.t(), list(String.t()) | list({String.t(), any()}), keyword()) ::
           any() | :error
   def select(display, choices, opts \\ []) do
-    # TODO: allow for the user to pass a list of tuples {display, return}
     color = Keyword.get(opts, :color, ANSI.default_color())
     write(color)
 
@@ -417,9 +448,6 @@ defmodule Prompt do
     write(row_delimiter)
   end
 
-  @callback process(atom() | {atom(), Keyword.t()}) :: 0 | 1
-  @callback init(list(), list({atom(), Keyword.t()})) :: 0 | 1
-
   defmacro __using__(opts) do
     app = Keyword.get(opts, :otp_app, nil)
 
@@ -434,18 +462,17 @@ defmodule Prompt do
       @app app
 
       @impl true
-      def init(argv, commands) do
+      def process(argv, commands) do
         argv
         |> OptionParser.parse_head(
           strict: [help: :boolean, version: :boolean],
           aliases: [h: :help, v: :version]
         )
         |> parse_opts(commands)
-        |> process()
+        |> _process()
       end
 
-      @impl true
-      def process(:help) do
+      defp _process(:help) do
         help =
           case Code.fetch_docs(__MODULE__) do
             {:docs_v1, _, :elixir, _, :none, _, _} -> "Help not available"
@@ -458,14 +485,13 @@ defmodule Prompt do
         0
       end
 
-      def process(:version) do
+      defp _process(:version) do
         {:ok, vsn} = :application.get_key(@app, :vsn)
         _ = display(List.to_string(vsn))
         0
       end
 
-      @impl true
-      def process({module, opts}) do
+      defp _process({module, opts}) do
         cmd = apply(module, :init, [opts])
         apply(module, :process, [cmd])
       end
