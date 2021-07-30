@@ -61,7 +61,7 @@ defmodule Prompt do
   @doc """
   Process the command line arguments based on the defined commands
   """
-  @callback process(list(), list({Process.Command, Keyword.t()})) :: 0 | 1
+  @callback process(list(), list({String.t(), Process.Command})) :: non_neg_integer()
 
   @doc """
   Display a Y/n prompt.
@@ -456,8 +456,8 @@ defmodule Prompt do
     end
 
     quote(bind_quoted: [app: app]) do
-      import Prompt
       @behaviour Prompt
+      import Prompt
 
       @app app
 
@@ -509,6 +509,8 @@ defmodule Prompt do
           {mod, rest}
         end
       end
+
+      defoverridable process: 2
     end
   end
 end
