@@ -40,7 +40,7 @@ defmodule Prompt do
 
   The first element in the command tuple is what you expect the user to use as a command, the second is the `Prompt.Command` module that will process the command.
 
-  Assuming you are building a escript, make sure to use `MyApp.CLI` as your module.
+  Assuming you are building a escript, make sure to use `MyApp.CLI` as your entry point.
 
   Once built, your command will be able to take a `first` and `second` subcommand.
 
@@ -52,7 +52,6 @@ defmodule Prompt do
   >>> my_app --version
   0.0.1 
   ```
-
   """
 
   alias IO.ANSI
@@ -203,6 +202,7 @@ defmodule Prompt do
   Available options:
 
     * color: A color from the `IO.ANSI` module
+    * multi: true | false (default) - allow for the user to select multiple values?
 
   ## Examples
 
@@ -218,11 +218,20 @@ defmodule Prompt do
       "Choose One [1-2]:" 2
       iex> 1001
 
+      iex> Prompt.select("Choose as many as you want", ["Choice A", "Choice B"], multi: true)
+      "  [1] Choice A"
+      "  [2] Choice B"
+      "Choose as many as you want [1-2]:" 1 2
+      iex> ["Choice A", "Choice B"]
+
   """
   @spec select(String.t(), list(String.t()) | list({String.t(), any()}), keyword()) ::
           any() | :error
   def select(display, choices, opts \\ []) do
     color = Keyword.get(opts, :color, ANSI.default_color())
+    multi = Keyword.get(opts, :multi, false)
+    opts = Keyword.put(opts, :multi, multi)
+
     write(color)
 
     for {choice, number} <- Enum.with_index(choices) do
@@ -255,10 +264,37 @@ defmodule Prompt do
     end
   end
 
+  defp show_select_error(display, choices, [multi: true] = opts) do
+    write(ANSI.red() <> "Enter numbers from 1-#{Enum.count(choices)} seperated by spaces: ")
+    reset()
+    read_select_choice(display, choices, opts)
+  end
+
   defp show_select_error(display, choices, opts) do
     write(ANSI.red() <> "Enter a number from 1-#{Enum.count(choices)}: ")
     reset()
     read_select_choice(display, choices, opts)
+  end
+
+  defp evaluate_choice_answer(answers, display, choices, [multi: true] = opts) do
+    answer_numbers = String.split(answers, " ")
+
+    answer_data =
+      for answer_number <- answer_numbers do
+        idx = String.to_integer(answer_number) - 1
+
+        case Enum.at(choices, idx) do
+          nil -> nil
+          {_, result} -> result
+          result -> result
+        end
+      end
+
+    if Enum.any?(answer_data, fn a -> a == nil end) do
+      show_select_error(display, choices, opts)
+    else
+      answer_data
+    end
   end
 
   defp evaluate_choice_answer(answer, display, choices, opts) do
@@ -509,6 +545,8 @@ defmodule Prompt do
           {mod, rest}
         end
       end
+
+      defp parse_opts(_), do: :help
 
       defoverridable process: 2
     end
