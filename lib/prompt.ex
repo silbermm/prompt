@@ -162,7 +162,7 @@ defmodule Prompt do
 
   defp _evaluate_choice(answer, choices, _) do
     choices
-    |> Enum.find(fn {_k, v} ->
+    |> Enum.find(fn {_k, v} - seperated by spaces>
       v |> String.downcase() == answer |> String.trim() |> String.downcase()
     end)
     |> elem(0)
