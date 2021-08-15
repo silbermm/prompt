@@ -18,7 +18,15 @@ defmodule Prompt do
   @moduledoc """
   Helpers for building interactive command line interfaces.
 
-  To build a cli app that has subcommands, define a module and `use Prompt, otp_app: :your_app` then build a list of `Prompt.Command` the represent your commands and pass them to `process/2`. `--version` will pull your app version from mix.exs and `--help` will print your @moduledoc for help.
+  ## Basic Usage
+  `import Prompt` includes utilities for printing to the screen (including support for tables), asking for confirmation, picking from a list of choices, asking for passwords and other free form text. See each function for example usage.
+
+
+  ## Subcommands
+  To build a cli app that has sub-commands, define a module and `use Prompt, otp_app: :your_app` then build a list of `Prompt.Command` that represent your commands and pass them to `process/2`.
+
+  `--version` will pull your app version from mix.exs
+  `--help` will print your @moduledoc for help.
 
   ## Example
 
@@ -30,10 +38,39 @@ defmodule Prompt do
     # the entry point to your app, takes the command line args
     def main(argv) do
       commands = [
-        {"first", MyApp.CLI.FirstCommand},
-        {"second", MyApp.CLI.SecondCommand}
+        {"first", MyApp.CLI.FirstCommand}
       ]
       process(argv, commands)
+    end
+  end
+
+
+  defmodule MyApp.CLI.FirstCommand do
+    @moduledoc "This prints when the help() command is called"
+    use Prompt.Command
+
+    @impl true
+    def init(argv) do
+      argv
+      |> OptionParser.parse(
+        strict: [help: :boolean, switch1: boolean, swtich2: :boolean],
+        aliases: [h: :help]
+      )
+      |> parse() #whatever you return from init will be what is passed to `process/1`
+    end
+
+    @impl true
+    def process(%{help: true}, do: help()
+    def process(%{switch1: switch1, switch2: switch2} do
+      # do something based on the command and switches
+      display("command output")
+    end
+
+    defp parse({[help: true], _, _}, do: %{help: true}
+    defp parse({opts, _, _}) do
+      switch1 = Keyword.get(opts, :switch1, false)
+      switch2 = Keyword.get(opts, :switch2, false)  
+      %{help: false, switch1: switch1, switch2: switch2}
     end
   end
   ```
@@ -45,12 +82,11 @@ defmodule Prompt do
   Once built, your command will be able to take a `first` and `second` subcommand.
 
   ```bash
-  >>> my_app first
-  ...
-  >>> my_app second
+  >>> my_app first --switch1
+  command output  
   ...
   >>> my_app --version
-  0.0.1 
+  0.0.1
   ```
   """
 
