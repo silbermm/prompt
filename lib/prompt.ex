@@ -546,7 +546,7 @@ defmodule Prompt do
         end
       end
 
-      defp parse_opts(_), do: :help
+      defp parse_opts(_, _), do: :help
 
       defoverridable process: 2
     end
