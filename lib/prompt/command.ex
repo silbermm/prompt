@@ -20,7 +20,7 @@ defmodule Prompt.Command do
   Defines the behaviour for a Command.
 
   We expect `init/1` to be called with the command line options and get
-  back a data structure that is passed to `parse/1` which handles all
+  back a data structure that is passed to `process/1` which handles all
   of the side effects of the command itself.
 
   ## Example
@@ -31,7 +31,7 @@ defmodule Prompt.Command do
     use Prompt.Command
 
     @impl true
-    def init(args) do
+    def init(_argv) do
       # parse list of args to map or struct
       %{list: true, help: false, directory: "path/to/dir"}
     end
