@@ -162,11 +162,12 @@ defmodule Prompt do
 
   ## Examples
 
-  iex> Prompt.choice("Save password?", 
-  ...>   [yes: "y", no: "n", regenerate: "r"],
-  ...>   default_answer: :regenerate)
-  "Save Password? (y/n/R):" [enter]
-  iex> :regenerate
+      iex> Prompt.choice("Save password?",
+      ...>   [yes: "y", no: "n", regenerate: "r"],
+      ...>   default_answer: :regenerate
+      ...> )
+      "Save Password? (y/n/R):" [enter]
+      iex> :regenerate
   """
   @spec choice(String.t(), keyword(), keyword()) :: atom()
   def choice(question, custom, opts \\ []) do
