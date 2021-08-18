@@ -44,7 +44,7 @@ defmodule Prompt.MixProject do
 
   defp docs do
     [
-      main: "readme",
+      main: "Prompt",
       extras: ["README.md"],
       logo: "assets/prompt.png"
     ]

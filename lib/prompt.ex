@@ -484,16 +484,6 @@ defmodule Prompt do
        | this  | is   | another | row      |
        +-------+------+---------+----------+
       "
-
-      iex> Prompt.table([["Hello", "from", "the", "terminal!"],["this", "is", "another", "row"]], title: "MY TABLE")
-      "
-       +MY TABLE------+---------+----------+
-       | Hello | from | the     | terminal |
-       | this  | is   | another | row      |
-       +-------+------+---------+----------+
-      "
-
-
   """
   @spec table(list(list()), keyword()) :: :ok
   def table(matrix, opts \\ []) when is_list(matrix) do
