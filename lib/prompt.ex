@@ -53,7 +53,7 @@ defmodule Prompt do
     def init(argv) do
       argv
       |> OptionParser.parse(
-        strict: [help: :boolean, switch1: boolean, swtich2: :boolean],
+        strict: [help: :boolean, switch1: :boolean, swtich2: :boolean],
         aliases: [h: :help]
       )
       |> parse() #whatever you return from init will be what is passed to `process/1`
@@ -79,7 +79,7 @@ defmodule Prompt do
 
   Assuming you are building a escript, make sure to use `MyApp.CLI` as your entry point.
 
-  Once built, your command will be able to take a `first` and `second` subcommand.
+  Once built, your command will be able to take a `first` subcommand.
 
   ```bash
   >>> my_app first --switch1
@@ -162,9 +162,11 @@ defmodule Prompt do
 
   ## Examples
 
-      iex> Prompt.choice("Save password?", [yes: "y", no: "n", regenerate: "r"}, default_answer: :regenerate)
-      "Save Password? (y/n/R):" [enter]
-      iex> :regenerate
+  iex> Prompt.choice("Save password?", 
+  ...>   [yes: "y", no: "n", regenerate: "r"],
+  ...>   default_answer: :regenerate)
+  "Save Password? (y/n/R):" [enter]
+  iex> :regenerate
   """
   @spec choice(String.t(), keyword(), keyword()) :: atom()
   def choice(question, custom, opts \\ []) do
