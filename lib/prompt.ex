@@ -107,6 +107,7 @@ defmodule Prompt do
 
     * color: A color from the `IO.ANSI` module
     * default_answer: :yes or :no
+    * mask_line: should the line be erased after the confirm
 
   ## Examples
 
@@ -123,12 +124,22 @@ defmodule Prompt do
   def confirm(question, opts \\ []) do
     default_answer = Keyword.get(opts, :default_answer, :yes)
     opts = Keyword.put(opts, :trim, true)
+    opts = Keyword.put(opts, :from, :confirm)
     display("#{question} #{confirm_text(default_answer)} ", opts)
 
     case read(:stdio, :line) do
-      :eof -> :error
-      {:error, _reason} -> :error
-      answer -> evaluate_confirm(answer, question, opts)
+      :eof ->
+        :error
+
+      {:error, _reason} ->
+        :error
+
+      answer ->
+        if Keyword.get(opts, :mask_line, false) do
+          Prompt.Position.mask_line(1)
+        end
+
+        evaluate_confirm(answer, question, opts)
     end
   end
 
@@ -417,12 +428,13 @@ defmodule Prompt do
     trim = Keyword.get(opts, :trim, false)
     color = Keyword.get(opts, :color, ANSI.default_color())
     hide = Keyword.get(opts, :mask_line, false)
+    from = Keyword.get(opts, :from, :self)
 
     if Keyword.has_key?(opts, :position) do
       position(opts, text)
     end
 
-    if hide do
+    if hide && from == :self do
       text =
         ANSI.reset() <>
           color <> text <> ANSI.reset() <> without_newline(true) <> " [Press Enter continue]"
