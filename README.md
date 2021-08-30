@@ -3,15 +3,16 @@
 ![](https://github.com/silbermm/prompt/workflows/Build/badge.svg)
 [![Hex.pm](https://img.shields.io/hexpm/v/prompt?style=flat-square)](https://hexdocs.pm/prompt/Prompt.html#content)
 
-**STILL A WORK IN PROGRESS**
-
 Easily build interactive CLI's in Elixir.
 
-## Motivation
+#Table of Contents
+* [Motivation](#Motiviation)
+
+# Motivation
 
 To create a really great development experience for Elixir developers to build commandline tools.
 
-## Installation
+# Installation
 
 Add `prompt` to your list of dependencies in `mix.exs`:
 
@@ -25,16 +26,16 @@ end
 
 [Read the official documentation](https://hexdocs.pm/prompt/Prompt.html)
 
-## Basic Usage
+# Basic Usage
 All of the following commands take a keyword list of options for things like text color and positioning.
 
-### Display text on the screen
+## Display text on the screen
 [Prompt.display/2](https://hexdocs.pm/prompt/Prompt.html#display/2)
 ```elixir
 Prompt.display("Hello, world!")
 ```
 
-### Ask the user for input
+## Ask the user for input
 [Prompt.text/2](https://hexdocs.pm/prompt/Prompt.html#text/2)
 ```elixir
 Prompt.text("Enter info here")
@@ -45,14 +46,14 @@ Will display:
 ```
 and wait for the user to enter text
 
-### Ask the user for a password
+## Ask the user for a password
 [Prompt.password/2](https://hexdocs.pm/prompt/Prompt.html#password/2)
 ```elixir
 Prompt.password("Enter password")
 ```
 Will hide input from the user
 
-### Ask the user for confirmation
+## Ask the user for confirmation
 [Prompt.confirm/2](https://hexdocs.pm/prompt/Prompt.html#confirm/2)
 ```elixir
 Prompt.confirm("Are you sure?")
@@ -69,7 +70,7 @@ Prompt.confirm("Are you sure?", default_answer: :no)
 ```
 Returns `:yes` or `:no` based on the answer
 
-### Custom confirmation choices
+## Custom confirmation choices
 [Prompt.choice/2](https://hexdocs.pm/prompt/Prompt.html#choice/2)
 Sometimes yes/no aren't the only choices a user can make, this method allows you to pass any choices as the confirmation.
 ```elixir
@@ -81,7 +82,7 @@ displays
 ```
 Returns the key of the answer i.e `:accept`, `:reload` or `cancel` in this exammple
 
-### List of selections
+## List of selections
 [Prompt.select/2](https://hexdocs.pm/prompt/Prompt.html#select/2)
 To show the user a list of options to select from
 
@@ -97,7 +98,7 @@ Displays:
 ```
 and returns a string of their choice
 
-### Tables
+## Tables
 [Prompt.table/2](https://hexdocs.pm/prompt/Prompt.html#table/2)
 To show a table of data
 ```elixir
@@ -111,5 +112,5 @@ Will display
   +-------+------+---------+----------+
 ```
 
-## Example
+# Example
 For a complete example, take a look at [Slim - a cherry-picking tool](https://github.com/silbermm/slim_pickens)
