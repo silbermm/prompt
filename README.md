@@ -9,6 +9,12 @@ Easily build interactive CLI's in Elixir.
 * [Installation](#installation)
 * [Basic Usage](#basic-usage)
   * [Display text on the screen](#display-text-on-the-screen)
+  * [Ask the user for input](#ask-the-user-for-input)
+  * [Ask the user for a password](#ask-the-user-for-a-password)
+  * [Ask the user for confirmation](#ask-the-user-for-confirmation)
+  * [Custom confirmation choices](#custom-confirmation-choices)
+  * [List of selections](#list-of-selections)
+  * [Tables](#tables)
 * [Advanced Usage](#advanced-usage-with-subcommands)
 * [Example Application](#example)
 
@@ -43,6 +49,7 @@ Prompt.display("Hello, world!")
 
 ## Ask the user for input
 [Prompt.text/2](https://hexdocs.pm/prompt/Prompt.html#text/2)
+Useful for prompting the user to enter freeform text
 ```elixir
 Prompt.text("Enter info here")
 ```
@@ -54,10 +61,10 @@ and wait for the user to enter text
 
 ## Ask the user for a password
 [Prompt.password/2](https://hexdocs.pm/prompt/Prompt.html#password/2)
+When you need to hide the input that the user types
 ```elixir
 Prompt.password("Enter password")
 ```
-Will hide input from the user
 
 ## Ask the user for confirmation
 [Prompt.confirm/2](https://hexdocs.pm/prompt/Prompt.html#confirm/2)
