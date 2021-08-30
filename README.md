@@ -5,7 +5,6 @@
 
 Easily build interactive CLI's in Elixir.
 
-#Table of Contents
 * [Motivation](#motivation)
 * [Installation](#installation)
 * [Basic Usage](#basic-usage)
