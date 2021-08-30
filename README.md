@@ -6,7 +6,14 @@
 Easily build interactive CLI's in Elixir.
 
 #Table of Contents
-* [Motivation](#Motiviation)
+* [Motivation](#motivation)
+* [Installation](#installation)
+* [Basic Usage](#basic-usage)
+  * [Display text on the screen](#display-text-on-the-screen)
+* [Advanced Usage](#advanced-usage-with-subcommands)
+* [Example Application](#example)
+
+
 
 # Motivation
 
@@ -111,6 +118,9 @@ Will display
   | this  | is   | another | row      |
   +-------+------+---------+----------+
 ```
+
+# Advanced Usage with Subcommands
+To use the more advanced features, see the [official documentation](https://hexdocs.pm/prompt/Prompt.html#module-subcommands)
 
 # Example
 For a complete example, take a look at [Slim - a cherry-picking tool](https://github.com/silbermm/slim_pickens)
