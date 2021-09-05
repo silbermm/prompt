@@ -77,8 +77,6 @@ defmodule Prompt do
 
   The first element in the command tuple is what you expect the user to use as a command, the second is the `Prompt.Command` module that will process the command.
 
-  Assuming you are building a escript, make sure to use `MyApp.CLI` as your entry point.
-
   Once built, your command will be able to take a `first` subcommand.
 
   ```bash
@@ -87,6 +85,26 @@ defmodule Prompt do
   ...
   >>> my_app --version
   0.0.1
+
+  ## Building for Distribution
+
+  There are a couple of different options for building a binary ready for distributing. Which ever approach you decide to use, you'll probably want to keep the docs instead of stripping them.
+  For escripts, you'll add the following  to the escript key in mix.exs, if using Bakeware, you'll add it to the releases key.
+
+  ```
+  :strip_beams: [keep: ["Docs"]]
+  ```
+
+  ### Escript
+  An [escript](https://hexdocs.pm/mix/master/Mix.Tasks.Escript.Build.html) is the most straightforward approach, but requires that erlang is already installed on the system.
+
+  ### Bakeware
+  This has been my preferred approach recently. [Bakeware](https://hexdocs.pm/bakeware/readme.html) uses releases to build a single executable binary that can be run on the system without the dependency on erlang or elixir.
+
+  For Bakeware, I also set `export RELEASE_DISTRIBUTION=none` in `rel/env.sh.eex` and `rel/env.bat.eex` - unless you need erlang distribution in your CLI.
+
+  For a complete example see [Slim](https://github.com/silbermm/slim_pickens]
+
   ```
   """
 
