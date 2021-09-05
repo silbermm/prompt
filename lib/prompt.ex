@@ -81,11 +81,11 @@ defmodule Prompt do
 
   ```bash
   >>> my_app first --switch1
-  command output  
+  command output
   ...
   >>> my_app --version
   0.0.1
-
+  ```
   ## Building for Distribution
 
   There are a couple of different options for building a binary ready for distributing. Which ever approach you decide to use, you'll probably want to keep the docs instead of stripping them.
@@ -104,8 +104,6 @@ defmodule Prompt do
   For Bakeware, I also set `export RELEASE_DISTRIBUTION=none` in `rel/env.sh.eex` and `rel/env.bat.eex` - unless you need erlang distribution in your CLI.
 
   For a complete example see [Slim](https://github.com/silbermm/slim_pickens]
-
-  ```
   """
 
   alias IO.ANSI
