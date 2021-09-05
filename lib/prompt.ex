@@ -69,7 +69,7 @@ defmodule Prompt do
     defp parse({[help: true], _, _}, do: %{help: true}
     defp parse({opts, _, _}) do
       switch1 = Keyword.get(opts, :switch1, false)
-      switch2 = Keyword.get(opts, :switch2, false)  
+      switch2 = Keyword.get(opts, :switch2, false)
       %{help: false, switch1: switch1, switch2: switch2}
     end
   end
