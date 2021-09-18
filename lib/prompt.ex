@@ -103,7 +103,7 @@ defmodule Prompt do
 
   For Bakeware, I also set `export RELEASE_DISTRIBUTION=none` in `rel/env.sh.eex` and `rel/env.bat.eex` - unless you need erlang distribution in your CLI.
 
-  For a complete example see [Slim](https://github.com/silbermm/slim_pickens]
+  For a complete example see [Slim](https://github.com/silbermm/slim_pickens)
   """
 
   alias IO.ANSI
