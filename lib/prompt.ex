@@ -491,10 +491,8 @@ defmodule Prompt do
 
   Available Options
 
-  * header: true | false (default) --- use the first element as a header of the table
-  * TODO: title: "TITLE"           --- Create a title for the table
-  * TODO: border: :normal
-  * TODO: borer_color:
+  * header: true | false (default)          --- use the first element as a header of the table
+  * border: :normal (default) | :markdown   --- determine how the border is displayed
 
   ## Examples
 
@@ -515,30 +513,66 @@ defmodule Prompt do
        | this  | is   | another | row      |
        +-------+------+---------+----------+
       "
+      
+      iex> Prompt.table([["One", "Two", "Three", "Four"], ["Hello", "from", "the", "terminal!"],["this", "is", "another", "row"]], header: true, border: :markdown)
+      "
+       | One   | Two  | Three   | Four     |
+       |-------|------|---------|----------|
+       | Hello | from | the     | terminal |
+       | this  | is   | another | row      |
+      "
+
   """
   @spec table(list(list()), keyword()) :: :ok
   def table(matrix, opts \\ []) when is_list(matrix) do
+    matrix
+    |> build_table(opts)
+    |> write()
+  end
+
+  @doc """
+  Use this to get an iolist back of the table. Useful when you want an ascii `table/1` for
+  other mediums like markdown files.
+  """
+  @spec table_data(list(list()), keyword()) :: [<<>> | [any()], ...]
+  def table_data(matrix, opts \\ []) when is_list(matrix) do
+    matrix
+    |> build_table(opts)
+  end
+
+  defp build_table(matrix, opts \\ []) do
     tbl = Prompt.Table.new(matrix, opts)
     row_delimiter = Prompt.Table.row_delimiter(tbl)
 
-    write(row_delimiter)
+    first =
+      if Keyword.get(opts, :border) != :markdown do
+        row_delimiter
+      else
+        ""
+      end
 
-    matrix =
+    {next, matrix} =
       if Keyword.get(opts, :header, false) do
         # get the first 'row'
         headers = Enum.at(matrix, 0)
-        write(Prompt.Table.row(tbl, headers))
-        write(row_delimiter)
-        Enum.drop(matrix, 1)
+        {[Prompt.Table.row(tbl, headers), row_delimiter], Enum.drop(matrix, 1)}
       else
         matrix
       end
 
-    for row <- matrix do
-      write(Prompt.Table.row(tbl, row))
-    end
+    rest =
+      for row <- matrix do
+        Prompt.Table.row(tbl, row)
+      end
 
-    write(row_delimiter)
+    last =
+      if Keyword.get(opts, :border) != :markdown do
+        row_delimiter
+      else
+        ""
+      end
+
+    [first, next, rest, last]
   end
 
   defmacro __using__(opts) do

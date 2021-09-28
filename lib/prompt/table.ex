@@ -44,17 +44,23 @@ defmodule Prompt.Table do
   end
 
   @doc "Generate the row delimiter"
-  @spec row_delimiter(t()) :: String.t()
+  @spec row_delimiter(t()) :: iolist()
   def row_delimiter(%Table{} = table) do
+    delimiter =
+      case Keyword.get(table.opts, :border, :normal) do
+        :markdown -> "|"
+        _ -> "+"
+      end
+
     row =
       for column_number <- 0..(table.column_count - 1) do
         # should get us the length of the largest cell in this column
         length = Map.get(table.columns_length, column_number)
         r = row_str(length)
-        "+-#{r}-"
+        "#{delimiter}-#{r}-"
       end
 
-    "#{row}+\n"
+    [row, delimiter, "\n"]
   end
 
   defp row_str(total_length), do: Enum.map(1..total_length, fn _ -> "-" end)
