@@ -16,17 +16,26 @@
 
 defmodule Prompt do
   @moduledoc """
-  Helpers for building interactive command line interfaces.
+  Prompt provides a complete solution for building interactive command line applications.
+
+  It's very flexible and can be used just to provide helpers for taking input from the user and displaying output.
 
   ## Basic Usage
-  `import Prompt` includes utilities for printing to the screen (including support for tables), asking for confirmation, picking from a list of choices, asking for passwords and other free form text. See each function for example usage.
+  `import Prompt` includes utilities for:
+    * printing to the screen          -> `display/1`
+    * printing tables to the screen   -> `table/1`
+    * asking for confirmation         -> `confirm/1`
+    * picking from a list of choices  -> `select/1`
+    * asking for passwords            -> `password/1`
+    * free form text                  -> `text/1`
 
+  ## Advanced usage
+  To build a more advanced terminal application including sub-commands, define a module and `use Prompt, otp_app: :your_app` then build a keyword list of `Prompt.Command` that represents your commands and arguments and pass them to `c:process/2`.
 
-  ## Subcommands
-  To build a cli app that has sub-commands, define a module and `use Prompt, otp_app: :your_app` then build a list of `Prompt.Command` that represent your commands and pass them to `process/2`.
+  Doing this will give you the following options out of the box:
 
-  `--version` will pull your app version from mix.exs
-  `--help` will print your @moduledoc for help.
+   * `--version` will pull your app version from mix.exs
+   * `--help` will print your @moduledoc for help.
 
   ## Example
 
@@ -36,15 +45,13 @@ defmodule Prompt do
     use Prompt, otp_app: :my_app
 
     # the entry point to your app, takes the command line args
-    def main(argv) do
-      commands = [
-        {"first", MyApp.CLI.FirstCommand}
-      ]
-      process(argv, commands)
+    def main(argv), do:
+      argv
+      |> process(first: MyApp.CLI.FirstCommand)
     end
   end
 
-
+  # a command
   defmodule MyApp.CLI.FirstCommand do
     @moduledoc "This prints when the help() command is called"
     use Prompt.Command
@@ -75,7 +82,7 @@ defmodule Prompt do
   end
   ```
 
-  The first element in the command tuple is what you expect the user to use as a command, the second is the `Prompt.Command` module that will process the command.
+  The key in the Keyword list that you pass to process/2 is what you expect the user to use as a command, the value is the `Prompt.Command` module that will process the command.
 
   Once built, your command will be able to take a `first` subcommand.
 
@@ -86,6 +93,10 @@ defmodule Prompt do
   >>> my_app --version
   0.0.1
   ```
+
+  By default we try to display the @moduledoc when there is an error or when --help is passed in. This is overrideable though by implementing your own version of `c:help/0`.
+
+
   ## Building for Distribution
 
   There are a couple of different options for building a binary ready for distributing. Which ever approach you decide to use, you'll probably want to keep the docs instead of stripping them.
@@ -113,6 +124,11 @@ defmodule Prompt do
   Process the command line arguments based on the defined commands
   """
   @callback process(list(), list({String.t(), Process.Command})) :: non_neg_integer()
+
+  @doc """
+  Prints help to the screen when there is an error, or `--help` is passed as an argument
+  """
+  @callback help() :: :ok
 
   @doc """
   Display a Y/n prompt.
@@ -600,6 +616,12 @@ defmodule Prompt do
       end
 
       defp _process(:help) do
+        help()
+        0
+      end
+
+      @impl true
+      def help() do
         help =
           case Code.fetch_docs(__MODULE__) do
             {:docs_v1, _, :elixir, _, :none, _, _} -> "Help not available"
@@ -609,7 +631,6 @@ defmodule Prompt do
           end
 
         display(help)
-        0
       end
 
       defp _process(:version) do
@@ -627,7 +648,11 @@ defmodule Prompt do
       defp parse_opts({[version: true], _, _}, _), do: :version
 
       defp parse_opts({[], [head | rest], _invalid}, defined_commands) do
-        res = Enum.find(defined_commands, fn {h, _} -> head == h end)
+        res =
+          Enum.find(defined_commands, fn
+            {h, _} when is_atom(h) -> head == Atom.to_string(h)
+            {h, _} -> head == h
+          end)
 
         if res == nil do
           :help
@@ -640,6 +665,7 @@ defmodule Prompt do
       defp parse_opts(_, _), do: :help
 
       defoverridable process: 2
+      defoverridable help: 0
     end
   end
 end
