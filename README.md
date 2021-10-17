@@ -3,9 +3,7 @@
 ![](https://github.com/silbermm/prompt/workflows/Build/badge.svg)
 [![Hex.pm](https://img.shields.io/hexpm/v/prompt?style=flat-square)](https://hexdocs.pm/prompt/Prompt.html#content)
 
-# Terminal Library for Elixir
-
-Easily build interactive CLI's in Elixir.
+# Terminal UI Library for Elixir
 
 * [Motivation](#motivation)
 * [Installation](#installation)
