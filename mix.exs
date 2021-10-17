@@ -36,7 +36,7 @@ defmodule Prompt.MixProject do
   defp package do
     [
       licenses: ["GPL-3.0-or-later"],
-      files: ["lib", "mix.exs", "README.md", "COPYING*"],
+      files: ["lib", "mix.exs", "README.md", "CHANGELOG.md", "COPYING*"],
       maintainers: ["Matt Silbernagel"],
       links: %{:GitHub => "https://github.com/silbermm/prompt"}
     ]
@@ -45,7 +45,7 @@ defmodule Prompt.MixProject do
   defp docs do
     [
       main: "Prompt",
-      extras: ["README.md"],
+      extras: ["README.md", "CHANGELOG.md"],
       logo: "assets/prompt.png"
     ]
   end
