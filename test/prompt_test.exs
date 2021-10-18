@@ -37,6 +37,13 @@ defmodule PromptTest do
              end) ==
                "\e[0m\e[39mSend the email? (Y/n): \e[0m\e[0m\e[39mSend the email? (Y/n): \e[0m"
     end
+
+    test "handle confirm - mask output" do
+      assert capture_io("y", fn ->
+               result = Prompt.confirm("Send the email?", mask_line: true)
+               assert result == :yes
+             end) == "\e[0m\e[39mSend the email? (Y/n): \e[0m\e[1A\e[2K\e[3m\e[92m#######\e[0m\n"
+    end
   end
 
   describe "choice" do
@@ -96,6 +103,38 @@ defmodule PromptTest do
              end) ==
                "\e[39m\e[1m\n\e[1000D\e[2C[1] t@t.com\e[1m\n\e[1000D\e[2C[2] a@a.com\n\n\e[1000D\e[0m\e[39mWhich email? [1-2]:\e[0m "
     end
+
+    test "returns selected options(multi)" do
+      assert capture_io("1 2", fn ->
+               result = Prompt.select("Which email?", ["t@t.com", "a@a.com"], multi: true)
+               assert result == ["t@t.com", "a@a.com"]
+             end) ==
+               "\e[39m\e[1m\n\e[1000D\e[2C[1] t@t.com\e[1m\n\e[1000D\e[2C[2] a@a.com\n\n\e[1000D\e[0m\e[39mWhich email? [1-2]:\e[0m "
+    end
+
+    test "allows list of tuples(multi)" do
+      assert capture_io("1 2", fn ->
+               result =
+                 Prompt.select("Which email?", [{"t@t.com", "t"}, {"a@a.com", "a"}], multi: true)
+
+               assert result == ["t", "a"]
+             end) ==
+               "\e[39m\e[1m\n\e[1000D\e[2C[1] t@t.com\e[1m\n\e[1000D\e[2C[2] a@a.com\n\n\e[1000D\e[0m\e[39mWhich email? [1-2]:\e[0m "
+    end
+
+    test "returns selected options(multi) - requires integers" do
+      assert capture_io("one", fn ->
+               Prompt.select("Which email?", ["t@t.com", "a@a.com"], multi: true)
+             end) ==
+               "\e[39m\e[1m\n\e[1000D\e[2C[1] t@t.com\e[1m\n\e[1000D\e[2C[2] a@a.com\n\n\e[1000D\e[0m\e[39mWhich email? [1-2]:\e[0m \e[31mEnter numbers from 1-2 seperated by spaces: \e[0m "
+    end
+
+    test "returns selected options(multi) - requires choice" do
+      assert capture_io("3", fn ->
+               Prompt.select("Which email?", ["t@t.com", "a@a.com"], multi: true)
+             end) ==
+               "\e[39m\e[1m\n\e[1000D\e[2C[1] t@t.com\e[1m\n\e[1000D\e[2C[2] a@a.com\n\n\e[1000D\e[0m\e[39mWhich email? [1-2]:\e[0m \e[31mEnter numbers from 1-2 seperated by spaces: \e[0m "
+    end
   end
 
   describe "text" do
@@ -107,12 +146,74 @@ defmodule PromptTest do
     end
   end
 
+  describe "password" do
+    test "ask for hidden input" do
+      assert capture_io("password", fn ->
+               result = Prompt.password("Enter Password: ")
+               assert result == "password"
+             end)
+    end
+  end
+
   describe "display" do
     test "hides text on enter" do
       assert capture_io("\n", fn ->
                assert Prompt.display("password", mask_line: true) == :ok
              end) ==
                "\e[0m\e[39mpassword\e[0m [Press Enter continue]\e[1A\e[2K\e[3m\e[92m#######\e[0m\n"
+    end
+
+    test "shows list of text" do
+      assert capture_io(fn ->
+               assert Prompt.display(["hello", "world"]) == :ok
+             end) == "\e[0m\e[39mhello\e[0m\n\e[0m\e[39mworld\e[0m\n"
+    end
+
+    test "shows text on the right" do
+      assert capture_io(fn ->
+               assert Prompt.display("hello", position: :right) == :ok
+             end) == "\e[10000C\e[5D\e[0m\e[39mhello\e[0m\n"
+    end
+  end
+
+  describe "tables" do
+    test "display simple table" do
+      assert capture_io(fn ->
+               Prompt.table([
+                 ["Hello", "from", "the", "terminal!"],
+                 ["this", "is", "another", "row"]
+               ])
+             end) ==
+               "+-------+------+---------+-----------+\n| Hello | from | the     | terminal! |\n| this  | is   | another | row       |\n+-------+------+---------+-----------+\n"
+    end
+
+    test "display simple table with headers" do
+      assert capture_io(fn ->
+               Prompt.table(
+                 [
+                   ["Hello", "from", "the", "terminal!"],
+                   ["this", "is", "another", "row"]
+                 ],
+                 header: true
+               )
+             end) ==
+               "+-------+------+---------+-----------+\n| Hello | from | the     | terminal! |\n+-------+------+---------+-----------+\n| this  | is   | another | row       |\n+-------+------+---------+-----------+\n"
+    end
+
+    test "return table data" do
+      assert Prompt.table_data([
+               ["Hello", "from", "the", "terminal!"],
+               ["this", "is", "another", "row"]
+             ]) ==
+               [
+                 [["+-------", "+------", "+---------", "+-----------"], "+", "\n"],
+                 "",
+                 [
+                   "| Hello | from | the     | terminal! |\n",
+                   "| this  | is   | another | row       |\n"
+                 ],
+                 [["+-------", "+------", "+---------", "+-----------"], "+", "\n"]
+               ]
     end
   end
 end

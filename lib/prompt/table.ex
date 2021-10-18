@@ -74,7 +74,6 @@ defmodule Prompt.Table do
 
   defp largest_column(row, per_column_map) do
     Enum.reduce(row, per_column_map, fn {column, idx}, acc ->
-      length = String.length(column)
       {_, updated} = Map.get_and_update(acc, idx, &update_map(&1, column))
       updated
     end)

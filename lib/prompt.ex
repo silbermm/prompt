@@ -123,7 +123,7 @@ defmodule Prompt do
   @doc """
   Process the command line arguments based on the defined commands
   """
-  @callback process(list(), list({String.t(), Process.Command})) :: non_neg_integer()
+  @callback process(list(), keyword(Process.Command)) :: non_neg_integer()
 
   @doc """
   Prints help to the screen when there is an error, or `--help` is passed as an argument
@@ -377,6 +377,9 @@ defmodule Prompt do
     else
       answer_data
     end
+  catch
+    _kind, _error ->
+      show_select_error(display, choices, opts)
   end
 
   defp evaluate_choice_answer(answer, display, choices, opts) do
@@ -453,7 +456,8 @@ defmodule Prompt do
   def display(text, opts \\ []), do: _display(text, opts)
 
   defp _display(texts, opts) when is_list(texts) do
-    Enum.map(texts, &display(&1, opts))
+    _ = Enum.map(texts, &display(&1, opts))
+    :ok
   end
 
   defp _display(text, opts) do
@@ -573,7 +577,7 @@ defmodule Prompt do
         headers = Enum.at(matrix, 0)
         {[Prompt.Table.row(tbl, headers), row_delimiter], Enum.drop(matrix, 1)}
       else
-        matrix
+        {"", matrix}
       end
 
     rest =
