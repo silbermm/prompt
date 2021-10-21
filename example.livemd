@@ -1,24 +1,37 @@
-# Example
+# Simple Example
 
-## Install Prompt
+## Starting Out
+
+Lets go through an example of creating and building a new commandline/terminal app with `Prompt` that will acknowledge a person.
+Lets call it `ack`.
+
+Start by creating a new mix project `mix new ack`.
+
+And then including `prompt` as a dependency (here we use `Mix.install/1` but you can do this in `mix.exs` dependency section).
 
 ```elixir
 Mix.install(prompt: "~> 0.6")
 ```
 
-## Build a Command
+## Build our first  subcommand
 
-Lets start by defining our first command. We'll call it `Hello` and have it respond with to the name passed in
+Lets start by defining our first command. We'll call it `Hello` and have it say hello to the name passed in.
 
 ```bash
-Hello {name}
+$ ack hello friend 
+```
+
+will respond with
+
+```
+Hello friend
 ```
 
 To do this, we'll need to `use Prompt.Command` and implement some callbacks:
 
-* `init/1` takes any arguments passed after the command i.e
-  * if you call `my_cli hello user -j --print`, you'll receive an array of `["user", "-j", "--print"]` as the parameter to init for the hello command
-* `process/1` whatever you return from `init/1` will be the input to this function
+* `init/1` - tkes any arguments passed after the command i.e
+  * if you call `ack hello user -j --print`, you'll receive an array of `["user", "-j", "--print"]` as the parameter to init for the hello command
+* `process/1` - whatever you return from `init/1` will be the input to this function
 
 ```elixir
 defmodule Command.Hello do
@@ -34,6 +47,8 @@ defmodule Command.Hello do
 
   @impl true
   def init(argv) do
+    # lets use OptionParser.parse/2 to parse the
+    # options and arguments passed to the subcommand
     argv
     |> OptionParser.parse(
       strict: [help: :boolean],
@@ -57,32 +72,34 @@ defmodule Command.Hello do
 end
 ```
 
-## New CLI Module
+## The Entry Point
 
-Here we user `use Prompt` to pull in the Prompt behaviour.
+Now that we defined a subcommand, we need a 'main' module that can take all commandline args and options
+and 'route' them to the correct place.
+
+Lets define a `CLI` module and create a `main` function where we can `use Prompt` to pull in the Prompt behaviour.
 
 ```elixir
 defmodule CLI do
   @moduledoc """
   DOCUMENTATION FOR THE TOOL
   """
-  use Prompt, otp_app: :prompt
+  use Prompt, otp_app: :ack
 
   @doc "The entry point for the application"
   def main(argv) do
-    process(argv, hello: Command.Hello)
-  end
+    # define the subcommands and which module handles them
+    subcommands = [hello: Command.Hello]
 
-  @impl true
-  def help() do
-    display(~S"""
-    TIS HELP
-    """)
+    # now use the provided `process/2` function
+    process(argv, subcommands)
   end
 end
 ```
 
 ## Call your new Command
+
+We'll have to simulate calling the command in this notebook by passing a list of flags to `CLI.main/1`.
 
 <!-- livebook:{"livebook_object":"cell_input","name":"input","reactive":true,"type":"text","value":"Matt"} -->
 
@@ -90,10 +107,10 @@ end
 CLI.main(["hello", IO.gets("input")])
 ```
 
-Help is available via the defined @moduledoc
+## Bundle and Distribute
 
-```elixir
-CLI.main(["--help"])
-```
+To build your app, you'll need to decide if you want an escript of a binary. The former will require
+the user of your tool to have Elixir and Erlang installed on their system. A binary built using 
+Bakeware can be distributed and used without having Elixir or Erlang on the system.
 
-
+See the [documentation](https://hexdocs.pm/prompt/Prompt.html#module-building-for-distribution) for details on both
