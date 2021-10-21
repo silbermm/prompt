@@ -22,7 +22,7 @@
 
 ## Motivation
 
-To create a really great development experience for Elixir developers to build commandline tools.
+To create a really great development experience and API for Elixir developers that want to build commandline tools.
 
 ## Installation
 

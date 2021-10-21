@@ -1,0 +1,99 @@
+# Example
+
+## Install Prompt
+
+```elixir
+Mix.install(prompt: "~> 0.6")
+```
+
+## Build a Command
+
+Lets start by defining our first command. We'll call it `Hello` and have it respond with to the name passed in
+
+```bash
+Hello {name}
+```
+
+To do this, we'll need to `use Prompt.Command` and implement some callbacks:
+
+* `init/1` takes any arguments passed after the command i.e
+  * if you call `my_cli hello user -j --print`, you'll receive an array of `["user", "-j", "--print"]` as the parameter to init for the hello command
+* `process/1` whatever you return from `init/1` will be the input to this function
+
+```elixir
+defmodule Command.Hello do
+  @moduledoc """
+  The help message
+
+  cmd <name>
+
+    --help prints this help message
+
+  """
+  use Prompt.Command
+
+  @impl true
+  def init(argv) do
+    argv
+    |> OptionParser.parse(
+      strict: [help: :boolean],
+      aliases: [h: :help]
+    )
+    |> parse()
+  end
+
+  @impl true
+  def process(%{help: true}), do: help()
+  def process(%{name: name}), do: display("Hello #{name}", color: IO.ANSI.green())
+
+  # name was not passed in
+  defp parse({_, [], _}), do: %{help: true}
+
+  # help was passed in
+  defp parse({[help: true], _, _}), do: %{help: true}
+
+  # name was passed in
+  defp parse({_, [name | _], _}), do: %{name: name}
+end
+```
+
+## New CLI Module
+
+Here we user `use Prompt` to pull in the Prompt behaviour.
+
+```elixir
+defmodule CLI do
+  @moduledoc """
+  DOCUMENTATION FOR THE TOOL
+  """
+  use Prompt, otp_app: :prompt
+
+  @doc "The entry point for the application"
+  def main(argv) do
+    process(argv, hello: Command.Hello)
+  end
+
+  @impl true
+  def help() do
+    display(~S"""
+    TIS HELP
+    """)
+  end
+end
+```
+
+## Call your new Command
+
+<!-- livebook:{"livebook_object":"cell_input","name":"input","reactive":true,"type":"text","value":"Matt"} -->
+
+```elixir
+CLI.main(["hello", IO.gets("input")])
+```
+
+Help is available via the defined @moduledoc
+
+```elixir
+CLI.main(["--help"])
+```
+
+
