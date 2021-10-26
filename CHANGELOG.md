@@ -6,7 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 ## [Unreleased]
-### Added
+### Docuentation
+  - Added Livebook example as extra pages in hexdoc
+  - Organized `Prompt` functions as Input / Output
+  - Nested Modules for better readability
+  - Updated ex_docs
+  - Added GPL License file
 
 ## [0.6.1] - 2021-10-21
 ### Added

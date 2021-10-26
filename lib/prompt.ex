@@ -120,16 +120,32 @@ defmodule Prompt do
   alias IO.ANSI
   import IO
 
+  @typedoc """
+  A keyword list of commands and implementations of `Prompt.Command`
+
+  ## Examples
+
+      iex> commands = [help: CLI.Commands.Help, version: CLI.Commands.Version]
+
+  """
+  @type command_list() :: keyword(Prompt.Command)
+
+  @typedoc """
+  The list of strings coming from the commmand-line arguments
+  """
+  @type argv() :: list(String.t())
+
   @doc """
   Process the command line arguments based on the defined commands
   """
-  @callback process(list(), keyword(Process.Command)) :: non_neg_integer()
+  @callback process(argv(), command_list()) :: non_neg_integer()
 
   @doc """
   Prints help to the screen when there is an error, or `--help` is passed as an argument
   """
   @callback help() :: :ok
 
+  @doc section: :input
   @doc """
   Display a Y/n prompt.
 
@@ -190,8 +206,10 @@ defmodule Prompt do
   defp _evaluate_confirm("", _, opts), do: Keyword.get(opts, :default_answer, :yes)
   defp _evaluate_confirm(_, question, opts), do: confirm(question, opts)
 
+  @doc section: :input
   @doc """
   Display a choice prompt with custom answers.
+
   Takes a keyword list of answers in the form of atom to return and string to display.
 
   `[yes: "y", no: "n"]`
@@ -250,6 +268,7 @@ defmodule Prompt do
     |> elem(0)
   end
 
+  @doc section: :input
   @doc """
   Display text on the screen and wait for the users text imput.
 
@@ -275,6 +294,7 @@ defmodule Prompt do
     end
   end
 
+  @doc section: :input
   @doc """
   Displays options to the user denoted by numbers.
 
@@ -395,6 +415,7 @@ defmodule Prompt do
       show_select_error(display, choices, opts)
   end
 
+  @doc section: :input
   @doc """
   Prompt the user for input, but conceal the users typing.
 
@@ -428,6 +449,7 @@ defmodule Prompt do
     end
   end
 
+  @doc section: :output
   @doc """
   Writes text to the screen.
 
@@ -506,6 +528,7 @@ defmodule Prompt do
     write(ANSI.cursor_right(10_000) <> ANSI.cursor_left(move_left))
   end
 
+  @doc section: :output
   @doc """
   Print an ASCII table of data. Requires a list of lists as input.
 
@@ -560,7 +583,7 @@ defmodule Prompt do
     |> build_table(opts)
   end
 
-  defp build_table(matrix, opts \\ []) do
+  defp build_table(matrix, opts) do
     tbl = Prompt.Table.new(matrix, opts)
     row_delimiter = Prompt.Table.row_delimiter(tbl)
 

@@ -28,7 +28,7 @@ defmodule Prompt.MixProject do
   defp deps do
     [
       {:credo, "~> 1.5", only: [:dev, :test], runtime: false},
-      {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
+      {:ex_doc, ">= 0.25.5", only: :dev, runtime: false},
       {:dialyxir, "~> 1.1", only: [:dev], runtime: false}
     ]
   end
@@ -45,8 +45,24 @@ defmodule Prompt.MixProject do
   defp docs do
     [
       main: "Prompt",
-      extras: ["README.md", "CHANGELOG.md"],
-      logo: "assets/prompt.png"
+      api_reference: false,
+      extras: [
+        "README.md": [filename: "introduction", title: "Introduction"],
+        "example.livemd": [filename: "example", title: "Example"],
+        "CHANGELOG.md": [filename: "changelog", title: "Changelog"],
+        LICENSE: [filename: "license", title: "License"]
+      ],
+      logo: "assets/prompt.png",
+      authors: ["Matt Silbernagel"],
+      groups_for_functions: [
+        "Input Functions": &(&1[:section] == :input),
+        "Output Functions": &(&1[:section] == :output)
+      ],
+      nest_modules_by_prefix: [
+        Prompt,
+        Prompt.Command,
+        Prompt.Position
+      ]
     ]
   end
 end
