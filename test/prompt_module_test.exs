@@ -32,12 +32,12 @@ defmodule PromptModuleTest do
   test "show help" do
     assert capture_io(fn ->
              Example.main(["--help"])
-           end) == "\e[0m\e[39mhelp\e[0m\n"
+           end) == "\e[0m\e[49m\e[39mhelp\e[0m\n\e[0m"
   end
 
   test "subcommand" do
     assert capture_io(fn ->
              Example.main(["test"])
-           end) == "\e[0m\e[39mtest command\e[0m\n"
+           end) == "\e[0m\e[49m\e[39mtest command\e[0m\n\e[0m"
   end
 end

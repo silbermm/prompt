@@ -145,6 +145,31 @@ defmodule Prompt do
   """
   @callback help() :: :ok
 
+  @type color ::
+          :black
+          | :blue
+          | :cyan
+          | :green
+          | :light_black
+          | :light_blue
+          | :light_cyan
+          | :light_green
+          | :light_magneta
+          | :light_red
+          | :light_white
+          | :light_yellow
+          | :magenta
+          | :red
+          | :white
+          | :yellow
+
+  @type confirm_options :: [
+          {:background_color, color()},
+          {:color, color()},
+          {:default_answer, :yes | :no},
+          {:mask_line, boolean()}
+        ]
+
   @doc section: :input
   @doc """
   Display a Y/n prompt.
@@ -152,8 +177,8 @@ defmodule Prompt do
   Sets 'Y' as the the default answer, allowing the user to just press the enter key. To make 'n' the default answer pass the option `default_answer: :no`
 
   Available options:
-
-    * color: A color from the `IO.ANSI` module
+    * color: text color from `t:color/0`
+    * background_color: choose from `t:color/0`
     * default_answer: :yes or :no
     * mask_line: should the line be erased after the confirm
 
@@ -168,7 +193,7 @@ defmodule Prompt do
       iex> :no
 
   """
-  @spec confirm(String.t(), keyword()) :: :yes | :no | :error
+  @spec confirm(String.t(), confirm_options()) :: :yes | :no | :error
   def confirm(question, opts \\ []) do
     default_answer = Keyword.get(opts, :default_answer, :yes)
     opts = Keyword.put(opts, :trim, true)
@@ -485,6 +510,7 @@ defmodule Prompt do
   defp _display(text, opts) do
     trim = Keyword.get(opts, :trim, false)
     color = Keyword.get(opts, :color, ANSI.default_color())
+    background_color = background_color(opts)
     hide = Keyword.get(opts, :mask_line, false)
     from = Keyword.get(opts, :from, :self)
 
@@ -494,8 +520,15 @@ defmodule Prompt do
 
     if hide && from == :self do
       text =
-        ANSI.reset() <>
-          color <> text <> ANSI.reset() <> without_newline(true) <> " [Press Enter continue]"
+        IO.ANSI.format([
+          :reset,
+          background_color,
+          color,
+          text,
+          :reset,
+          without_newline(true),
+          " [Press Enter to continue]"
+        ])
 
       write(text)
 
@@ -505,7 +538,9 @@ defmodule Prompt do
         _ -> Prompt.Position.mask_line(1)
       end
     else
-      text = ANSI.reset() <> color <> text <> ANSI.reset() <> without_newline(trim)
+      text =
+        IO.ANSI.format([:reset, background_color, color, text, :reset, without_newline(trim)])
+
       write(text)
     end
   end
@@ -693,6 +728,13 @@ defmodule Prompt do
 
       defoverridable process: 2
       defoverridable help: 0
+    end
+  end
+
+  defp background_color(opts) do
+    case Keyword.get(opts, :background_color, nil) do
+      nil -> ANSI.default_background()
+      res -> String.to_atom("#{Atom.to_string(res)}_background")
     end
   end
 end

@@ -7,42 +7,43 @@ defmodule PromptTest do
       assert capture_io("y", fn ->
                result = Prompt.confirm("Send the email?")
                assert result == :yes
-             end) == "\e[0m\e[39mSend the email? (Y/n): \e[0m"
+             end) == "\e[0m\e[49m\e[39mSend the email? (Y/n): \e[0m\e[0m"
     end
 
     test "handle confirm - default" do
       assert capture_io("\n", fn ->
                result = Prompt.confirm("Send the email?", [])
                assert result == :yes
-             end) == "\e[0m\e[39mSend the email? (Y/n): \e[0m"
+             end) == "\e[0m\e[49m\e[39mSend the email? (Y/n): \e[0m\e[0m"
     end
 
     test "handle confirm - default to no" do
       assert capture_io("\n", fn ->
                result = Prompt.confirm("Send the email?", default_answer: :no)
                assert result == :no
-             end) == "\e[0m\e[39mSend the email? (y/N): \e[0m"
+             end) == "\e[0m\e[49m\e[39mSend the email? (y/N): \e[0m\e[0m"
     end
 
     test "handle confirm - no" do
       assert capture_io("n", fn ->
                result = Prompt.confirm("Send the email?", [])
                assert result == :no
-             end) == "\e[0m\e[39mSend the email? (Y/n): \e[0m"
+             end) == "\e[0m\e[49m\e[39mSend the email? (Y/n): \e[0m\e[0m"
     end
 
     test "handle confirm - unknown answer" do
       assert capture_io("asdf", fn ->
                Prompt.confirm("Send the email?", [])
              end) ==
-               "\e[0m\e[39mSend the email? (Y/n): \e[0m\e[0m\e[39mSend the email? (Y/n): \e[0m"
+               "\e[0m\e[49m\e[39mSend the email? (Y/n): \e[0m\e[0m\e[0m\e[49m\e[39mSend the email? (Y/n): \e[0m\e[0m"
     end
 
     test "handle confirm - mask output" do
       assert capture_io("y", fn ->
                result = Prompt.confirm("Send the email?", mask_line: true)
                assert result == :yes
-             end) == "\e[0m\e[39mSend the email? (Y/n): \e[0m\e[1A\e[2K\e[3m\e[92m#######\e[0m\n"
+             end) ==
+               "\e[0m\e[49m\e[39mSend the email? (Y/n): \e[0m\e[0m\e[1A\e[2K\e[3m\e[92m#######\e[0m\n"
     end
   end
 
@@ -51,14 +52,14 @@ defmodule PromptTest do
       assert capture_io("y", fn ->
                result = Prompt.choice("Send the email?", yes: "y", no: "n")
                assert result == :yes
-             end) == "\e[0m\e[39mSend the email? (Y/n): \e[0m"
+             end) == "\e[0m\e[49m\e[39mSend the email? (Y/n): \e[0m\e[0m"
     end
 
     test "handle many custom choices" do
       assert capture_io("y", fn ->
                result = Prompt.choice("Send the email?", yes: "y", no: "n", cancel: "c")
                assert result == :yes
-             end) == "\e[0m\e[39mSend the email? (Y/n/c): \e[0m"
+             end) == "\e[0m\e[49m\e[39mSend the email? (Y/n/c): \e[0m\e[0m"
     end
 
     test "handle many custom choices - default" do
@@ -69,7 +70,7 @@ defmodule PromptTest do
                  )
 
                assert result == :cancel
-             end) == "\e[0m\e[39mSend the email? (y/n/C): \e[0m"
+             end) == "\e[0m\e[49m\e[39mSend the email? (y/n/C): \e[0m\e[0m"
     end
   end
 
@@ -160,19 +161,19 @@ defmodule PromptTest do
       assert capture_io("\n", fn ->
                assert Prompt.display("password", mask_line: true) == :ok
              end) ==
-               "\e[0m\e[39mpassword\e[0m [Press Enter continue]\e[1A\e[2K\e[3m\e[92m#######\e[0m\n"
+               "\e[0m\e[49m\e[39mpassword\e[0m [Press Enter to continue]\e[0m\e[1A\e[2K\e[3m\e[92m#######\e[0m\n"
     end
 
     test "shows list of text" do
       assert capture_io(fn ->
                assert Prompt.display(["hello", "world"]) == :ok
-             end) == "\e[0m\e[39mhello\e[0m\n\e[0m\e[39mworld\e[0m\n"
+             end) == "\e[0m\e[49m\e[39mhello\e[0m\n\e[0m\e[0m\e[49m\e[39mworld\e[0m\n\e[0m"
     end
 
     test "shows text on the right" do
       assert capture_io(fn ->
                assert Prompt.display("hello", position: :right) == :ok
-             end) == "\e[10000C\e[5D\e[0m\e[39mhello\e[0m\n"
+             end) == "\e[10000C\e[5D\e[0m\e[49m\e[39mhello\e[0m\n\e[0m"
     end
   end
 
