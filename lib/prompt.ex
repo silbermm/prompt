@@ -145,42 +145,64 @@ defmodule Prompt do
   """
   @callback help() :: :ok
 
-  @type color ::
-          :black
-          | :blue
-          | :cyan
-          | :green
-          | :light_black
-          | :light_blue
-          | :light_cyan
-          | :light_green
-          | :light_magneta
-          | :light_red
-          | :light_white
-          | :light_yellow
-          | :magenta
-          | :red
-          | :white
-          | :yellow
+  @colors [
+    :black,
+    :blue,
+    :cyan,
+    :green,
+    :light_black,
+    :light_blue,
+    :light_cyan,
+    :light_green,
+    :light_magneta,
+    :light_red,
+    :light_white,
+    :light_yellow,
+    :magenta,
+    :red,
+    :white,
+    :yellow
+  ]
 
-  @type confirm_options :: [
-          {:background_color, color()},
-          {:color, color()},
-          {:default_answer, :yes | :no},
-          {:mask_line, boolean()}
-        ]
-
+  @confirm_options NimbleOptions.new!(
+                     color: [
+                       type: {:in, @colors},
+                       doc: "The text color. One of `#{Kernel.inspect(@colors)}`."
+                     ],
+                     background_color: [
+                       type: {:in, @colors},
+                       doc: "The background color. One of `#{Kernel.inspect(@colors)}`."
+                     ],
+                     default_answer: [
+                       type: {:in, [:yes, :no]},
+                       default: :yes,
+                       doc: "The default answer to the confirmation."
+                     ],
+                     mask_line: [
+                       type: :boolean,
+                       default: false,
+                       doc:
+                         "If set to true, this will mask the current line by replacing it with `#####`. Useful when showing passwords in the terminal."
+                     ],
+                     trim: [
+                       type: :boolean,
+                       default: true,
+                       doc: false
+                     ],
+                     from: [
+                       type: :atom,
+                       default: :confirm,
+                       doc: false
+                     ]
+                   )
   @doc section: :input
   @doc """
   Display a Y/n prompt.
 
   Sets 'Y' as the the default answer, allowing the user to just press the enter key. To make 'n' the default answer pass the option `default_answer: :no`
 
-  Available options:
-    * color: text color from `t:color/0`
-    * background_color: choose from `t:color/0`
-    * default_answer: :yes or :no
-    * mask_line: should the line be erased after the confirm
+  Supported options:
+  #{NimbleOptions.docs(@confirm_options)}
 
   ## Examples
 
@@ -193,12 +215,21 @@ defmodule Prompt do
       iex> :no
 
   """
-  @spec confirm(String.t(), confirm_options()) :: :yes | :no | :error
+  @spec confirm(String.t(), keyword()) :: :yes | :no | :error
   def confirm(question, opts \\ []) do
-    default_answer = Keyword.get(opts, :default_answer, :yes)
-    opts = Keyword.put(opts, :trim, true)
-    opts = Keyword.put(opts, :from, :confirm)
-    display("#{question} #{confirm_text(default_answer)} ", opts)
+    case NimbleOptions.validate(opts, @confirm_options) do
+      {:ok, options} ->
+        _confirm(question, options)
+
+      {:error, err} ->
+        display(err.message, error: true)
+        :error
+    end
+  end
+
+  defp _confirm(question, options) do
+    default_answer = Keyword.get(options, :default_answer)
+    display("#{question} #{confirm_text(default_answer)} ", options)
 
     case read(:stdio, :line) do
       :eof ->
@@ -208,11 +239,11 @@ defmodule Prompt do
         :error
 
       answer ->
-        if Keyword.get(opts, :mask_line, false) do
+        if Keyword.get(options, :mask_line, false) do
           Prompt.Position.mask_line(1)
         end
 
-        evaluate_confirm(answer, question, opts)
+        evaluate_confirm(answer, question, options)
     end
   end
 
@@ -231,6 +262,31 @@ defmodule Prompt do
   defp _evaluate_confirm("", _, opts), do: Keyword.get(opts, :default_answer, :yes)
   defp _evaluate_confirm(_, question, opts), do: confirm(question, opts)
 
+  @choice_options NimbleOptions.new!(
+                    color: [
+                      type: {:in, @colors},
+                      doc: "The text color. One of `#{Kernel.inspect(@colors)}`."
+                    ],
+                    background_color: [
+                      type: {:in, @colors},
+                      doc: "The background color. One of `#{Kernel.inspect(@colors)}`."
+                    ],
+                    default_answer: [
+                      type: :atom,
+                      doc: "The default answer for the choices. Defaults to the first choice."
+                    ],
+                    trim: [
+                      type: :boolean,
+                      default: true,
+                      doc: false
+                    ],
+                    from: [
+                      type: :atom,
+                      default: :confirm,
+                      doc: false
+                    ]
+                  )
+
   @doc section: :input
   @doc """
   Display a choice prompt with custom answers.
@@ -241,10 +297,8 @@ defmodule Prompt do
 
   will show "(y/n)" and return `:yes` or `:no` based on the choice.
 
-  Available options:
-
-    * default_answer: the default answer. If default isn't passed, the first is the default.
-    * color: A color from the `IO.ANSI` module
+  Supported options: 
+  #{NimbleOptions.docs(@choice_options)}
 
   ## Examples
 
@@ -255,17 +309,24 @@ defmodule Prompt do
       "Save Password? (y/n/R):" [enter]
       iex> :regenerate
   """
-  @spec choice(String.t(), keyword(), keyword()) :: atom()
+  @spec choice(String.t(), keyword(), keyword()) :: :error | atom()
   def choice(question, custom, opts \\ []) do
-    [{k, _} | _rest] = custom
-    default_answer = Keyword.get(opts, :default_answer, k)
-    opts = Keyword.put(opts, :trim, true)
-    display("#{question} #{choice_text(custom, default_answer)} ", opts)
+    case NimbleOptions.validate(opts, @choice_options) do
+      {:ok, options} ->
+        [{k, _} | _rest] = custom
+        default_answer = Keyword.get(options, :default_answer, k)
 
-    case read(:stdio, :line) do
-      :eof -> :error
-      {:error, _reason} -> :error
-      answer -> _evaluate_choice(answer, custom, default_answer)
+        display("#{question} #{choice_text(custom, default_answer)} ", options)
+
+        case read(:stdio, :line) do
+          :eof -> :error
+          {:error, _reason} -> :error
+          answer -> _evaluate_choice(answer, custom, default_answer)
+        end
+
+      {:error, err} ->
+        display(err.message, error: true)
+        :error
     end
   end
 
@@ -293,13 +354,26 @@ defmodule Prompt do
     |> elem(0)
   end
 
+  @text_options NimbleOptions.new!(
+                  color: [
+                    type: {:in, @colors},
+                    doc:
+                      "The text color. One of `#{Kernel.inspect(@colors)}`. Defaults to the terminal default."
+                  ],
+                  background_color: [
+                    type: {:in, @colors},
+                    doc:
+                      "The background color. One of `#{Kernel.inspect(@colors)}`. Defaults to the terminal default."
+                  ],
+                  trim: [type: :boolean, default: true, doc: false]
+                )
+
   @doc section: :input
   @doc """
   Display text on the screen and wait for the users text imput.
 
-  Available options:
-
-    * color: A color from the `IO.ANSI` module
+  Supported options:
+  #{NimbleOptions.docs(@text_options)}
 
   ## Examples
 
@@ -307,17 +381,42 @@ defmodule Prompt do
       "Enter your email:" t@t.com
       iex> t@t.com
   """
-  @spec text(String.t(), keyword()) :: String.t()
+  @spec text(String.t(), keyword()) :: String.t() | :error
   def text(display, opts \\ []) do
-    opts = Keyword.put(opts, :trim, true)
-    display("#{display}: ", opts)
+    case NimbleOptions.validate(opts, @choice_options) do
+      {:ok, options} ->
+        display("#{display}: ", options)
 
-    case read(:stdio, :line) do
-      :eof -> :error
-      {:error, _reason} -> :error
-      answer -> String.trim(answer)
+        case read(:stdio, :line) do
+          :eof -> :error
+          {:error, _reason} -> :error
+          answer -> String.trim(answer)
+        end
+
+      {:error, err} ->
+        display(err.message, error: true)
+        :error
     end
   end
+
+  @select_options NimbleOptions.new!(
+                    color: [
+                      type: {:in, @colors},
+                      doc:
+                        "The text color. One of `#{Kernel.inspect(@colors)}`. Defaults to the terminal default."
+                    ],
+                    background_color: [
+                      type: {:in, @colors},
+                      doc:
+                        "The background color. One of `#{Kernel.inspect(@colors)}`. Defaults to the terminal default."
+                    ],
+                    multi: [
+                      type: :boolean,
+                      default: false,
+                      doc: "Allows multiple selections from the options presented."
+                    ],
+                    trim: [type: :boolean, default: true, doc: false]
+                  )
 
   @doc section: :input
   @doc """
@@ -326,10 +425,8 @@ defmodule Prompt do
   Allows for a list of 2 tuples where the first value is what is displayed
   and the second value is what is returned to the caller.
 
-  Available options:
-
-    * color: A color from the `IO.ANSI` module
-    * multi: true | false (default) - allow for the user to select multiple values?
+  Supported options:
+  #{NimbleOptions.docs(@select_options)}
 
   ## Examples
 
@@ -355,26 +452,50 @@ defmodule Prompt do
   @spec select(String.t(), list(String.t()) | list({String.t(), any()}), keyword()) ::
           any() | :error
   def select(display, choices, opts \\ []) do
-    color = Keyword.get(opts, :color, ANSI.default_color())
-    multi = Keyword.get(opts, :multi, false)
-    opts = Keyword.put(opts, :multi, multi)
+    case NimbleOptions.validate(opts, @select_options) do
+      {:ok, options} ->
+        color = Keyword.get(options, :color, IO.ANSI.default_color())
 
-    write(color)
+        background_color = Keyword.get(options, :background_color, IO.ANSI.default_background())
 
-    for {choice, number} <- Enum.with_index(choices) do
-      write(ANSI.bright() <> "\n" <> ANSI.cursor_left(1000) <> ANSI.cursor_right(2))
-      write_choice(choice, number)
+        for {choice, number} <- Enum.with_index(choices) do
+          text =
+            IO.ANSI.format([
+              :reset,
+              background_color(options),
+              color,
+              ANSI.bright(),
+              "\n",
+              ANSI.cursor_left(1000),
+              ANSI.cursor_right(2),
+              select_text(choice, number),
+              :reset
+            ])
+
+          write(text)
+        end
+
+        write(
+          IO.ANSI.format([
+            "\n",
+            "\n",
+            ANSI.cursor_left(1000),
+            background_color(options),
+            color,
+            "#{display} [1-#{Enum.count(choices)}]:"
+          ])
+        )
+
+        read_select_choice(display, choices, options)
+
+      {:error, err} ->
+        display(err.message, error: true)
+        :error
     end
-
-    write("\n\n" <> ANSI.cursor_left(1000))
-    write(ANSI.reset() <> color <> "#{display} [1-#{Enum.count(choices)}]:")
-    reset()
-
-    read_select_choice(display, choices, opts)
   end
 
-  defp write_choice({dis, _}, number), do: write("[#{number + 1}] #{dis}")
-  defp write_choice(choice, number), do: write("[#{number + 1}] #{choice}")
+  defp select_text({dis, _}, number), do: "[#{number + 1}] #{dis}"
+  defp select_text(choice, number), do: "[#{number + 1}] #{choice}"
 
   defp read_select_choice(display, choices, opts) do
     case read(:stdio, :line) do
@@ -391,12 +512,14 @@ defmodule Prompt do
     end
   end
 
+  # TODO: display the same format as everything else i.e background color
   defp show_select_error(display, choices, [multi: true] = opts) do
     write(ANSI.red() <> "Enter numbers from 1-#{Enum.count(choices)} seperated by spaces: ")
     reset()
     read_select_choice(display, choices, opts)
   end
 
+  # TODO: display the same format as everything else i.e background color
   defp show_select_error(display, choices, opts) do
     write(ANSI.red() <> "Enter a number from 1-#{Enum.count(choices)}: ")
     reset()
