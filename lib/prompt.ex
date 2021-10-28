@@ -454,113 +454,16 @@ defmodule Prompt do
   def select(display, choices, opts \\ []) do
     case NimbleOptions.validate(opts, @select_options) do
       {:ok, options} ->
-        color = Keyword.get(options, :color, IO.ANSI.default_color())
-
-        background_color = Keyword.get(options, :background_color, IO.ANSI.default_background())
-
-        for {choice, number} <- Enum.with_index(choices) do
-          text =
-            IO.ANSI.format([
-              :reset,
-              background_color(options),
-              color,
-              ANSI.bright(),
-              "\n",
-              ANSI.cursor_left(1000),
-              ANSI.cursor_right(2),
-              select_text(choice, number),
-              :reset
-            ])
-
-          write(text)
-        end
-
-        write(
-          IO.ANSI.format([
-            "\n",
-            "\n",
-            ANSI.cursor_left(1000),
-            background_color(options),
-            color,
-            "#{display} [1-#{Enum.count(choices)}]:"
-          ])
-        )
-
-        read_select_choice(display, choices, options)
+        select =
+          display
+          |> Prompt.IO.Select.new(choices, options)
+          |> Prompt.IO.Select.display()
+          |> Prompt.IO.Select.evaluate()
 
       {:error, err} ->
         display(err.message, error: true)
         :error
     end
-  end
-
-  defp select_text({dis, _}, number), do: "[#{number + 1}] #{dis}"
-  defp select_text(choice, number), do: "[#{number + 1}] #{choice}"
-
-  defp read_select_choice(display, choices, opts) do
-    case read(:stdio, :line) do
-      :eof ->
-        :error
-
-      {:error, _reason} ->
-        :error
-
-      answer ->
-        answer
-        |> String.trim()
-        |> evaluate_choice_answer(display, choices, opts)
-    end
-  end
-
-  # TODO: display the same format as everything else i.e background color
-  defp show_select_error(display, choices, [multi: true] = opts) do
-    write(ANSI.red() <> "Enter numbers from 1-#{Enum.count(choices)} seperated by spaces: ")
-    reset()
-    read_select_choice(display, choices, opts)
-  end
-
-  # TODO: display the same format as everything else i.e background color
-  defp show_select_error(display, choices, opts) do
-    write(ANSI.red() <> "Enter a number from 1-#{Enum.count(choices)}: ")
-    reset()
-    read_select_choice(display, choices, opts)
-  end
-
-  defp evaluate_choice_answer(answers, display, choices, [multi: true] = opts) do
-    answer_numbers = String.split(answers, " ")
-
-    answer_data =
-      for answer_number <- answer_numbers do
-        idx = String.to_integer(answer_number) - 1
-
-        case Enum.at(choices, idx) do
-          nil -> nil
-          {_, result} -> result
-          result -> result
-        end
-      end
-
-    if Enum.any?(answer_data, fn a -> a == nil end) do
-      show_select_error(display, choices, opts)
-    else
-      answer_data
-    end
-  catch
-    _kind, _error ->
-      show_select_error(display, choices, opts)
-  end
-
-  defp evaluate_choice_answer(answer, display, choices, opts) do
-    answer_number = String.to_integer(answer) - 1
-
-    case Enum.at(choices, answer_number) do
-      nil -> show_select_error(display, choices, opts)
-      {_, result} -> result
-      result -> result
-    end
-  catch
-    _kind, _error ->
-      show_select_error(display, choices, opts)
   end
 
   @doc section: :input
