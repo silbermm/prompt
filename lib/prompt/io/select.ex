@@ -134,7 +134,7 @@ defmodule Prompt.IO.Select do
 
     [
       select.color,
-      select.background_color,
+      background_color(select),
       :bright,
       text
     ]
