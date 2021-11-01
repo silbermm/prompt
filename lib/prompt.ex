@@ -184,16 +184,8 @@ defmodule Prompt do
                        doc:
                          "If set to true, this will mask the current line by replacing it with `#####`. Useful when showing passwords in the terminal."
                      ],
-                     trim: [
-                       type: :boolean,
-                       default: true,
-                       doc: false
-                     ],
-                     from: [
-                       type: :atom,
-                       default: :confirm,
-                       doc: false
-                     ]
+                     trim: [type: :boolean, default: true, doc: false],
+                     from: [type: :atom, default: :confirm, doc: false]
                    )
   @doc section: :input
   @doc """
