@@ -313,15 +313,12 @@ defmodule Prompt do
   """
   @spec text(String.t(), keyword()) :: String.t() | :error
   def text(display, opts \\ []) do
-    case NimbleOptions.validate(opts, @choice_options) do
+    case NimbleOptions.validate(opts, @text_options) do
       {:ok, options} ->
-        display("#{display}: ", options)
-
-        case read(:stdio, :line) do
-          :eof -> :error
-          {:error, _reason} -> :error
-          answer -> String.trim(answer)
-        end
+        display
+        |> Prompt.IO.Text.new(opts, fn d -> display(d, options) end)
+        |> Prompt.IO.display()
+        |> Prompt.IO.evaluate()
 
       {:error, err} ->
         display(err.message, error: true)
