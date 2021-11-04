@@ -211,48 +211,16 @@ defmodule Prompt do
   def confirm(question, opts \\ []) do
     case NimbleOptions.validate(opts, @confirm_options) do
       {:ok, options} ->
-        _confirm(question, options)
+        question
+        |> Prompt.IO.Confirm.new(options, fn d -> display(d, options) end)
+        |> Prompt.IO.display()
+        |> Prompt.IO.evaluate()
 
       {:error, err} ->
         display(err.message, error: true)
         :error
     end
   end
-
-  defp _confirm(question, options) do
-    default_answer = Keyword.get(options, :default_answer)
-    display("#{question} #{confirm_text(default_answer)} ", options)
-
-    case read(:stdio, :line) do
-      :eof ->
-        :error
-
-      {:error, _reason} ->
-        :error
-
-      answer ->
-        if Keyword.get(options, :mask_line, false) do
-          Prompt.Position.mask_line(1)
-        end
-
-        evaluate_confirm(answer, question, options)
-    end
-  end
-
-  defp confirm_text(:yes), do: "(Y/n):"
-  defp confirm_text(:no), do: "(y/N):"
-
-  defp evaluate_confirm(answer, question, opts) do
-    answer
-    |> String.trim()
-    |> String.downcase()
-    |> _evaluate_confirm(question, opts)
-  end
-
-  defp _evaluate_confirm("y", _, _), do: :yes
-  defp _evaluate_confirm("n", _, _), do: :no
-  defp _evaluate_confirm("", _, opts), do: Keyword.get(opts, :default_answer, :yes)
-  defp _evaluate_confirm(_, question, opts), do: confirm(question, opts)
 
   @choice_options NimbleOptions.new!(
                     color: [
@@ -305,45 +273,15 @@ defmodule Prompt do
   def choice(question, custom, opts \\ []) do
     case NimbleOptions.validate(opts, @choice_options) do
       {:ok, options} ->
-        [{k, _} | _rest] = custom
-        default_answer = Keyword.get(options, :default_answer, k)
-
-        display("#{question} #{choice_text(custom, default_answer)} ", options)
-
-        case read(:stdio, :line) do
-          :eof -> :error
-          {:error, _reason} -> :error
-          answer -> _evaluate_choice(answer, custom, default_answer)
-        end
+        question
+        |> Prompt.IO.Choice.new(custom, opts, fn t -> display(t, options) end)
+        |> Prompt.IO.display()
+        |> Prompt.IO.evaluate()
 
       {:error, err} ->
         display(err.message, error: true)
         :error
     end
-  end
-
-  defp choice_text(custom_choices, default) do
-    lst =
-      Enum.map(custom_choices, fn {d, c} ->
-        if d == default do
-          String.upcase(c)
-        else
-          c
-        end
-      end)
-
-    "(#{Enum.join(lst, "/")}):"
-  end
-
-  defp _evaluate_choice("\n", choices, default),
-    do: choices |> Keyword.take([default]) |> List.first() |> elem(0)
-
-  defp _evaluate_choice(answer, choices, _) do
-    choices
-    |> Enum.find(fn {_k, v} ->
-      v |> String.downcase() == answer |> String.trim() |> String.downcase()
-    end)
-    |> elem(0)
   end
 
   @text_options NimbleOptions.new!(
@@ -449,8 +387,8 @@ defmodule Prompt do
         select =
           display
           |> Prompt.IO.Select.new(choices, options)
-          |> Prompt.IO.Select.display()
-          |> Prompt.IO.Select.evaluate()
+          |> Prompt.IO.display()
+          |> Prompt.IO.evaluate()
 
       {:error, err} ->
         display(err.message, error: true)

@@ -65,128 +65,129 @@ defmodule Prompt.IO.Select do
     }
   end
 
-  @spec display(t()) :: t()
-  def display(%Select{} = select) do
-    for {choice, number} <- Enum.with_index(select.choices) do
+  defimpl Prompt.IO do
+    @spec display(Prompt.IO.Select.t()) :: Prompt.IO.Select.t()
+    def display(%Select{} = select) do
+      for {choice, number} <- Enum.with_index(select.choices) do
+        [
+          :reset,
+          background_color(select),
+          select.color,
+          :bright,
+          "\n",
+          ANSI.cursor_left(1000),
+          ANSI.cursor_right(2),
+          select_text(choice, number)
+        ]
+        |> ANSI.format()
+        |> write()
+      end
+
       [
-        :reset,
-        background_color(select),
-        select.color,
-        :bright,
+        "\n",
         "\n",
         ANSI.cursor_left(1000),
-        ANSI.cursor_right(2),
-        select_text(choice, number)
+        background_color(select),
+        select.color,
+        "#{select.display} [1-#{Enum.count(select.choices)}]:"
       ]
       |> ANSI.format()
       |> write()
+
+      select
     end
 
-    [
-      "\n",
-      "\n",
-      ANSI.cursor_left(1000),
-      background_color(select),
-      select.color,
-      "#{select.display} [1-#{Enum.count(select.choices)}]:"
-    ]
-    |> ANSI.format()
-    |> write()
+    @spec evaluate(Prompt.IO.Select.t()) :: binary() | list(binary)
+    def evaluate(%Select{} = select) do
+      case read(:stdio, :line) do
+        :eof ->
+          %Select{select | error: "reached end of file when reading input"}
 
-    select
-  end
+        {:error, reason} ->
+          %Select{select | error: reason}
 
-  @spec evaluate(t()) :: binary() | list(binary)
-  def evaluate(%Select{} = select) do
-    case read(:stdio, :line) do
-      :eof ->
-        %Select{select | error: "reached end of file when reading input"}
+        answer ->
+          answer
+          |> String.trim()
+          |> evaluate_choice_answer(select)
+          |> case do
+            %Select{error: err} = s when not is_nil(err) ->
+              s
+              |> show_select_error()
+              |> evaluate()
 
-      {:error, reason} ->
-        %Select{select | error: reason}
+            %Select{answer: answer} ->
+              answer
+          end
+      end
+    end
 
-      answer ->
-        answer
-        |> String.trim()
-        |> evaluate_choice_answer(select)
-        |> case do
-          %Select{error: err} = s when not is_nil(err) ->
-            s
-            |> show_select_error()
-            |> evaluate()
+    defp select_text({dis, _}, number), do: "[#{number + 1}] #{dis}"
+    defp select_text(choice, number), do: "[#{number + 1}] #{choice}"
 
-          %Select{answer: answer} ->
-            answer
+    defp show_select_error(select) do
+      text =
+        if select.multi do
+          "Enter numbers from 1-#{Enum.count(select.choices)} seperated by spaces: "
+        else
+          "Enter a number from 1-#{Enum.count(select.choices)}: "
         end
+
+      [
+        select.color,
+        background_color(select),
+        :bright,
+        text
+      ]
+      |> ANSI.format()
+      |> write
+
+      # reset error
+      %Select{select | error: nil}
     end
-  end
 
-  defp select_text({dis, _}, number), do: "[#{number + 1}] #{dis}"
-  defp select_text(choice, number), do: "[#{number + 1}] #{choice}"
+    defp evaluate_choice_answer(answers, %Select{multi: true} = select) do
+      answer_numbers = String.split(answers, " ")
 
-  defp show_select_error(select) do
-    text =
-      if select.multi do
-        "Enter numbers from 1-#{Enum.count(select.choices)} seperated by spaces: "
+      answer_data =
+        for answer_number <- answer_numbers do
+          idx = String.to_integer(answer_number) - 1
+
+          case Enum.at(select.choices, idx) do
+            nil -> nil
+            {_, result} -> result
+            result -> result
+          end
+        end
+
+      if Enum.any?(answer_data, fn a -> a == nil end) do
+        %Select{select | error: :invalid_answer}
       else
-        "Enter a number from 1-#{Enum.count(select.choices)}: "
+        %Select{select | answer: answer_data}
       end
+    catch
+      _kind, error ->
+        %Select{select | error: error}
+    end
 
-    [
-      select.color,
-      background_color(select),
-      :bright,
-      text
-    ]
-    |> ANSI.format()
-    |> write
+    defp evaluate_choice_answer(answer, %Select{multi: false} = select) do
+      answer_number = String.to_integer(answer) - 1
 
-    # reset error
-    %Select{select | error: nil}
-  end
-
-  @spec evaluate_choice_answer(binary(), t()) :: t()
-  defp evaluate_choice_answer(answers, %Select{multi: true} = select) do
-    answer_numbers = String.split(answers, " ")
-
-    answer_data =
-      for answer_number <- answer_numbers do
-        idx = String.to_integer(answer_number) - 1
-
-        case Enum.at(select.choices, idx) do
-          nil -> nil
-          {_, result} -> result
-          result -> result
-        end
+      case Enum.at(select.choices, answer_number) do
+        nil -> %Select{select | error: :invalid_answer}
+        {_, result} -> %Select{select | answer: result}
+        result -> %Select{select | answer: result}
       end
-
-    if Enum.any?(answer_data, fn a -> a == nil end) do
-      %Select{select | error: :invalid_answer}
-    else
-      %Select{select | answer: answer_data}
+    catch
+      _kind, error ->
+        %Select{select | error: error}
     end
-  catch
-    _kind, error ->
-      %Select{select | error: error}
-  end
 
-  defp evaluate_choice_answer(answer, %Select{multi: false} = select) do
-    answer_number = String.to_integer(answer) - 1
-
-    case Enum.at(select.choices, answer_number) do
-      nil -> %Select{select | error: :invalid_answer}
-      {_, result} -> %Select{select | answer: result}
-      result -> %Select{select | answer: result}
-    end
-  catch
-    _kind, error ->
-      %Select{select | error: error}
-  end
-
-  defp background_color(select) do
-    case select.background_color do
-      nil -> ANSI.default_background()
-      res -> String.to_atom("#{Atom.to_string(res)}_background")
+    defp background_color(select) do
+      case select.background_color do
+        nil -> ANSI.default_background()
+        res -> String.to_atom("#{Atom.to_string(res)}_background")
+      end
     end
   end
 end

@@ -10,7 +10,7 @@ defmodule Prompt.MixProject do
       package: package(),
       source_url: "https://github.com/silbermm/prompt",
       dialyzer: [
-        plt_file: {:no_warn, "priv/plts/dialyzer.plt"},
+        # plt_file: {:no_warn, "priv/plts/dialyzer.plt"},
         flags: ["-Wunmatched_returns", :error_handling, :race_conditions, :underspecs]
       ],
       docs: docs(),
