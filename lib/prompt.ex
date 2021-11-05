@@ -145,24 +145,7 @@ defmodule Prompt do
   """
   @callback help() :: :ok
 
-  @colors [
-    :black,
-    :blue,
-    :cyan,
-    :green,
-    :light_black,
-    :light_blue,
-    :light_cyan,
-    :light_green,
-    :light_magneta,
-    :light_red,
-    :light_white,
-    :light_yellow,
-    :magenta,
-    :red,
-    :white,
-    :yellow
-  ]
+  @colors Prompt.IO.Color.all()
 
   @confirm_options NimbleOptions.new!(
                      color: [
@@ -235,16 +218,8 @@ defmodule Prompt do
                       type: :atom,
                       doc: "The default answer for the choices. Defaults to the first choice."
                     ],
-                    trim: [
-                      type: :boolean,
-                      default: true,
-                      doc: false
-                    ],
-                    from: [
-                      type: :atom,
-                      default: :confirm,
-                      doc: false
-                    ]
+                    trim: [type: :boolean, default: true, doc: false],
+                    from: [type: :atom, default: :confirm, doc: false]
                   )
 
   @doc section: :input
@@ -393,13 +368,25 @@ defmodule Prompt do
     end
   end
 
+  @password_options NimbleOptions.new!(
+                      color: [
+                        type: {:in, @colors},
+                        doc:
+                          "The text color. One of `#{Kernel.inspect(@colors)}`. Defaults to the terminal default."
+                      ],
+                      background_color: [
+                        type: {:in, @colors},
+                        doc:
+                          "The background color. One of `#{Kernel.inspect(@colors)}`. Defaults to the terminal default."
+                      ]
+                    )
+
   @doc section: :input
   @doc """
   Prompt the user for input, but conceal the users typing.
 
-  Available options:
-
-    * color: A color from the `IO.ANSI` module
+  Supported options:
+  #{NimbleOptions.docs(@password_options)}
 
   ## Examples
 
@@ -409,21 +396,16 @@ defmodule Prompt do
   """
   @spec password(String.t(), keyword()) :: String.t()
   def password(display, opts \\ []) do
-    color = Keyword.get(opts, :color, ANSI.default_color())
-    write(color <> "#{display}: #{ANSI.conceal()}")
+    case NimbleOptions.validate(opts, @password_options) do
+      {:ok, options} ->
+        display
+        |> Prompt.IO.Password.new(options)
+        |> Prompt.IO.display()
+        |> Prompt.IO.evaluate()
 
-    case read(:stdio, :line) do
-      :eof ->
+      {:error, err} ->
+        display(err.message, error: true)
         :error
-
-      {:error, _reason} ->
-        :error
-
-      answer ->
-        write(ANSI.reset())
-
-        answer
-        |> String.trim()
     end
   end
 
