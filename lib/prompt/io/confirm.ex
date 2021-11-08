@@ -2,9 +2,8 @@ defmodule Prompt.IO.Confirm do
   @moduledoc false
 
   alias __MODULE__
-  alias IO.ANSI
   alias Prompt.IO.Color
-  import IO, only: [write: 1, read: 2]
+  import IO, only: [read: 2]
 
   @type t :: %Confirm{
           color: Color.t(),

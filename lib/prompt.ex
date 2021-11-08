@@ -356,11 +356,10 @@ defmodule Prompt do
   def select(display, choices, opts \\ []) do
     case NimbleOptions.validate(opts, @select_options) do
       {:ok, options} ->
-        select =
-          display
-          |> Prompt.IO.Select.new(choices, options)
-          |> Prompt.IO.display()
-          |> Prompt.IO.evaluate()
+        display
+        |> Prompt.IO.Select.new(choices, options)
+        |> Prompt.IO.display()
+        |> Prompt.IO.evaluate()
 
       {:error, err} ->
         display(err.message, error: true)
@@ -482,8 +481,6 @@ defmodule Prompt do
 
   defp without_newline(true), do: ""
   defp without_newline(false), do: "\n"
-
-  defp reset(), do: write(ANSI.reset() <> " ")
 
   defp position(opts, content) do
     opts

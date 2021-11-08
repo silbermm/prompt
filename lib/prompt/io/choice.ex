@@ -2,8 +2,7 @@ defmodule Prompt.IO.Choice do
   @moduledoc false
 
   alias __MODULE__
-  alias IO.ANSI
-  import IO, only: [write: 1, read: 2]
+  import IO, only: [read: 2]
 
   @type t :: %Choice{
           default_answer: atom(),

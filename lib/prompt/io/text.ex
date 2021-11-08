@@ -22,7 +22,7 @@ defmodule Prompt.IO.Text do
       txt
     end
 
-    def evaluate(txt) do
+    def evaluate(_txt) do
       case read(:stdio, :line) do
         :eof -> :error
         {:error, _reason} -> :error
