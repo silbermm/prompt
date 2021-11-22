@@ -12,9 +12,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - modified the way to pass in text color
     * takes an atom now instead of an `IO.ANSI`color function
   - refactored `select/2` into it's own module
+  - refactored `choice/2` into it's own module
+  - refactored `confirm/2` into it's own module
+  - refactored `text/2` into it's own module
+
 
 ## [0.6.2] - 2021-10-25
-### Docuentation
+### Documentation
   - Added Livebook example as extra pages in hexdoc
   - Organized `Prompt` functions as Input / Output
   - Nested Modules for better readability

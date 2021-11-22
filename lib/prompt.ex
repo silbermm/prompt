@@ -192,17 +192,9 @@ defmodule Prompt do
   """
   @spec confirm(String.t(), keyword()) :: :yes | :no | :error
   def confirm(question, opts \\ []) do
-    case NimbleOptions.validate(opts, @confirm_options) do
-      {:ok, options} ->
-        question
-        |> Prompt.IO.Confirm.new(options, fn d -> display(d, options) end)
-        |> Prompt.IO.display()
-        |> Prompt.IO.evaluate()
-
-      {:error, err} ->
-        display(err.message, error: true)
-        :error
-    end
+    run(opts, @confirm_options, fn options ->
+      Prompt.IO.Confirm.new(question, options)
+    end)
   end
 
   @choice_options NimbleOptions.new!(
@@ -246,17 +238,9 @@ defmodule Prompt do
   """
   @spec choice(String.t(), keyword(), keyword()) :: :error | atom()
   def choice(question, custom, opts \\ []) do
-    case NimbleOptions.validate(opts, @choice_options) do
-      {:ok, options} ->
-        question
-        |> Prompt.IO.Choice.new(custom, opts, fn t -> display(t, options) end)
-        |> Prompt.IO.display()
-        |> Prompt.IO.evaluate()
-
-      {:error, err} ->
-        display(err.message, error: true)
-        :error
-    end
+    run(opts, @choice_options, fn options ->
+      Prompt.IO.Choice.new(question, custom, options, fn t -> display(t, opts) end)
+    end)
   end
 
   @text_options NimbleOptions.new!(
@@ -270,7 +254,7 @@ defmodule Prompt do
                     doc:
                       "The background color. One of `#{Kernel.inspect(@colors)}`. Defaults to the terminal default."
                   ],
-                  trim: [type: :boolean, default: true, doc: false]
+                  trim: [type: :boolean, default: false, doc: false]
                 )
 
   @doc section: :input
@@ -288,17 +272,9 @@ defmodule Prompt do
   """
   @spec text(String.t(), keyword()) :: String.t() | :error
   def text(display, opts \\ []) do
-    case NimbleOptions.validate(opts, @text_options) do
-      {:ok, options} ->
-        display
-        |> Prompt.IO.Text.new(opts, fn d -> display(d, options) end)
-        |> Prompt.IO.display()
-        |> Prompt.IO.evaluate()
-
-      {:error, err} ->
-        display(err.message, error: true)
-        :error
-    end
+    run(opts, @text_options, fn options ->
+      Prompt.IO.Text.new(display, options, fn d -> display(d, opts) end)
+    end)
   end
 
   @select_options NimbleOptions.new!(
@@ -354,17 +330,9 @@ defmodule Prompt do
   @spec select(String.t(), list(String.t()) | list({String.t(), any()}), keyword()) ::
           any() | :error
   def select(display, choices, opts \\ []) do
-    case NimbleOptions.validate(opts, @select_options) do
-      {:ok, options} ->
-        display
-        |> Prompt.IO.Select.new(choices, options)
-        |> Prompt.IO.display()
-        |> Prompt.IO.evaluate()
-
-      {:error, err} ->
-        display(err.message, error: true)
-        :error
-    end
+    run(opts, @select_options, fn options ->
+      Prompt.IO.Select.new(display, choices, options)
+    end)
   end
 
   @password_options NimbleOptions.new!(
@@ -395,18 +363,37 @@ defmodule Prompt do
   """
   @spec password(String.t(), keyword()) :: String.t()
   def password(display, opts \\ []) do
-    case NimbleOptions.validate(opts, @password_options) do
-      {:ok, options} ->
-        display
-        |> Prompt.IO.Password.new(options)
-        |> Prompt.IO.display()
-        |> Prompt.IO.evaluate()
-
-      {:error, err} ->
-        display(err.message, error: true)
-        :error
-    end
+    run(opts, @password_options, fn options ->
+      Prompt.IO.Password.new(display, options)
+    end)
   end
+
+  @display_options NimbleOptions.new!(
+                     color: [
+                       type: {:in, @colors},
+                       doc:
+                         "The text color. One of `#{Kernel.inspect(@colors)}`. Defaults to the terminal default."
+                     ],
+                     background_color: [
+                       type: {:in, @colors},
+                       doc:
+                         "The background color. One of `#{Kernel.inspect(@colors)}`. Defaults to the terminal default."
+                     ],
+                     trim: [type: :boolean, default: false, doc: false],
+                     from: [type: :atom, default: :self, doc: false],
+                     position: [
+                       type: {:in, [:left, :right]},
+                       default: :left,
+                       doc:
+                         "Print the content starting from the leftmost position or the rightmost position"
+                     ],
+                     mask_line: [
+                       type: :boolean,
+                       default: false,
+                       doc:
+                         "If set to true, this will mask the current line by replacing it with `#####`. Useful when showing passwords in the terminal."
+                     ]
+                   )
 
   @doc section: :output
   @doc """
@@ -414,13 +401,9 @@ defmodule Prompt do
 
   Takes a single string argument or a list of strings where each item in the list will be diplayed on a new line.
 
-  Available options:
 
-    * color: A color from the `IO.ANSI` module
-    * trim: true | false       --- Defaults to false (will put a `\n` at the end of the text
-    * position: :left | :right --- Print the content starting from the leftmost position or the rightmost position
-    * mask_line: true | false  --- Prompts the user to press enter and afterwards masks the line just printed
-      * the main use case here is a password that you may want to show the user but hide after the user has a chance to write it down, or copy it.
+  Supported options:
+  #{NimbleOptions.docs(@display_options)}
 
   ## Examples
 
@@ -442,57 +425,9 @@ defmodule Prompt do
   end
 
   defp _display(text, opts) do
-    trim = Keyword.get(opts, :trim, false)
-    color = Keyword.get(opts, :color, ANSI.default_color())
-    background_color = background_color(opts)
-    hide = Keyword.get(opts, :mask_line, false)
-    from = Keyword.get(opts, :from, :self)
-
-    if Keyword.has_key?(opts, :position) do
-      position(opts, text)
-    end
-
-    if hide && from == :self do
-      text =
-        IO.ANSI.format([
-          :reset,
-          background_color,
-          color,
-          text,
-          :reset,
-          without_newline(true),
-          " [Press Enter to continue]"
-        ])
-
-      write(text)
-
-      case read(:stdio, :line) do
-        :eof -> :error
-        {:error, _reason} -> :error
-        _ -> Prompt.Position.mask_line(1)
-      end
-    else
-      text =
-        IO.ANSI.format([:reset, background_color, color, text, :reset, without_newline(trim)])
-
-      write(text)
-    end
-  end
-
-  defp without_newline(true), do: ""
-  defp without_newline(false), do: "\n"
-
-  defp position(opts, content) do
-    opts
-    |> Keyword.get(:position)
-    |> _position(content)
-  end
-
-  defp _position(:left, _), do: write(ANSI.cursor_left(10_000))
-
-  defp _position(:right, content) do
-    move_left = String.length(content)
-    write(ANSI.cursor_right(10_000) <> ANSI.cursor_left(move_left))
+    run(opts, @display_options, fn options ->
+      Prompt.IO.Display.new(text, options)
+    end)
   end
 
   @doc section: :output
@@ -667,6 +602,19 @@ defmodule Prompt do
     case Keyword.get(opts, :background_color, nil) do
       nil -> ANSI.default_background()
       res -> String.to_atom("#{Atom.to_string(res)}_background")
+    end
+  end
+
+  defp run(opts, validation, io) do
+    case NimbleOptions.validate(opts, validation) do
+      {:ok, options} ->
+        io.(options)
+        |> Prompt.IO.display()
+        |> Prompt.IO.evaluate()
+
+      {:error, err} ->
+        display(err.message, error: true)
+        :error
     end
   end
 end
