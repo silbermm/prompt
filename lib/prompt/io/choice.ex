@@ -2,39 +2,52 @@ defmodule Prompt.IO.Choice do
   @moduledoc false
 
   alias __MODULE__
-  import IO, only: [read: 2]
+  alias IO.ANSI
+  import IO, only: [write: 1, read: 2]
 
   @type t :: %Choice{
           default_answer: atom(),
           question: binary(),
           custom: any(),
-          displayfn: (String.t() -> :ok)
+          color: any(),
+          background_color: any(),
+          trim: boolean()
         }
 
   defstruct [
     :default_answer,
     :question,
     :custom,
-    :displayfn
+    :color,
+    :background_color,
+    :trim
   ]
 
   @doc ""
-  def new(question, custom, options, displayfn) do
+  def new(question, custom, options) do
     [{k, _} | _rest] = custom
 
     %Choice{
+      color: Keyword.get(options, :color, IO.ANSI.default_color()),
+      trim: Keyword.get(options, :trim),
       default_answer: Keyword.get(options, :default_answer, k),
       question: question,
-      custom: custom,
-      displayfn: displayfn
+      custom: custom
     }
   end
 
   defimpl Prompt.IO do
     def display(choice) do
-      choice.displayfn.(
-        "#{choice.question} #{choice_text(choice.custom, choice.default_answer)} "
-      )
+      [
+        :reset,
+        background_color(choice),
+        choice.color,
+        "#{choice.question} #{choice_text(choice.custom, choice.default_answer)} ",
+        :reset,
+        without_newline(choice.trim)
+      ]
+      |> ANSI.format()
+      |> write()
 
       choice
     end
@@ -70,5 +83,15 @@ defmodule Prompt.IO.Choice do
       end)
       |> elem(0)
     end
+
+    defp background_color(display) do
+      case display.background_color do
+        nil -> ANSI.default_background()
+        res -> String.to_atom("#{Atom.to_string(res)}_background")
+      end
+    end
+
+    defp without_newline(true), do: ""
+    defp without_newline(false), do: "\n"
   end
 end

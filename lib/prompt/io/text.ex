@@ -2,23 +2,36 @@ defmodule Prompt.IO.Text do
   @moduledoc false
 
   alias __MODULE__
-  import IO, only: [read: 2]
+  alias IO.ANSI
+  import IO, only: [write: 1, read: 2]
 
-  @type t() :: %Text{question: String.t(), displayfn: (String.t() -> :ok)}
+  @type t() :: %Text{question: String.t(), color: any(), background_color: any(), trim: boolean()}
 
-  defstruct [:question, :displayfn]
+  defstruct [:question, :color, :background_color, :trim]
 
   @doc ""
-  def new(question, _options, displayfn) do
+  def new(question, options) do
     %Text{
-      displayfn: displayfn,
-      question: question
+      question: question,
+      color: Keyword.get(options, :color, IO.ANSI.default_color()),
+      background_color: Keyword.get(options, :background_color),
+      trim: Keyword.get(options, :trim)
     }
   end
 
   defimpl Prompt.IO do
     def display(txt) do
-      :ok = txt.displayfn.("#{txt.question}: ")
+      [
+        :reset,
+        background_color(txt),
+        txt.color,
+        "#{txt.question}: ",
+        :reset,
+        without_newline(txt.trim)
+      ]
+      |> ANSI.format()
+      |> write()
+
       txt
     end
 
@@ -27,6 +40,16 @@ defmodule Prompt.IO.Text do
         :eof -> :error
         {:error, _reason} -> :error
         answer -> String.trim(answer)
+      end
+    end
+
+    defp without_newline(true), do: ""
+    defp without_newline(false), do: "\n"
+
+    defp background_color(display) do
+      case display.background_color do
+        nil -> ANSI.default_background()
+        res -> String.to_atom("#{Atom.to_string(res)}_background")
       end
     end
   end

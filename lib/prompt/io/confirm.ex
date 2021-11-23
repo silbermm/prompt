@@ -42,7 +42,6 @@ defmodule Prompt.IO.Confirm do
   end
 
   defimpl Prompt.IO do
-    @spec display(Confirm.t()) :: Confirm.t()
     def display(%Confirm{} = confirm) do
       if confirm.mask_line do
         ANSI.format([

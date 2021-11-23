@@ -117,7 +117,6 @@ defmodule Prompt do
   For a complete example see [Slim](https://github.com/silbermm/slim_pickens)
   """
 
-  alias IO.ANSI
   import IO
 
   @typedoc """
@@ -239,7 +238,7 @@ defmodule Prompt do
   @spec choice(String.t(), keyword(), keyword()) :: :error | atom()
   def choice(question, custom, opts \\ []) do
     run(opts, @choice_options, fn options ->
-      Prompt.IO.Choice.new(question, custom, options, fn t -> display(t, opts) end)
+      Prompt.IO.Choice.new(question, custom, options)
     end)
   end
 
@@ -273,7 +272,7 @@ defmodule Prompt do
   @spec text(String.t(), keyword()) :: String.t() | :error
   def text(display, opts \\ []) do
     run(opts, @text_options, fn options ->
-      Prompt.IO.Text.new(display, options, fn d -> display(d, opts) end)
+      Prompt.IO.Text.new(display, options)
     end)
   end
 
@@ -595,13 +594,6 @@ defmodule Prompt do
 
       defoverridable process: 2
       defoverridable help: 0
-    end
-  end
-
-  defp background_color(opts) do
-    case Keyword.get(opts, :background_color, nil) do
-      nil -> ANSI.default_background()
-      res -> String.to_atom("#{Atom.to_string(res)}_background")
     end
   end
 

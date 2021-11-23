@@ -59,7 +59,7 @@ defmodule PromptTest do
       assert capture_io("y", fn ->
                result = Prompt.choice("Send the email?", yes: "y", no: "n", cancel: "c")
                assert result == :yes
-             end) == "\e[10000D\e[0m\e[49m\e[39mSend the email? (Y/n/c): \e[0m\n\e[0m"
+             end) == "\e[0m\e[49m\e[39mSend the email? (Y/n/c): \e[0m\e[0m"
     end
 
     test "handle many custom choices - default" do
@@ -161,7 +161,7 @@ defmodule PromptTest do
       assert capture_io("\n", fn ->
                assert Prompt.display("password", mask_line: true) == :ok
              end) ==
-               "\e[0m\e[49m\e[39mpassword\e[0m [Press Enter to continue]\e[0m\e[1A\e[2K\e[3m\e[92m#######\e[0m\n"
+               "\e[10000D\e[0m\e[49m\e[39mpassword\e[0m [Press Enter to continue]\e[0m\e[1A\e[2K\e[3m\e[92m#######\e[0m\n"
     end
 
     test "shows list of text" do
