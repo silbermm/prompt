@@ -25,9 +25,9 @@ defmodule Prompt do
     * printing to the screen          -> `display/1`
     * printing tables to the screen   -> `table/1`
     * asking for confirmation         -> `confirm/1`
-    * picking from a list of choices  -> `select/1`
+    * picking from a list of choices  -> `select/2`
     * asking for passwords            -> `password/1`
-    * free form text                  -> `text/1`
+    * free form text input            -> `text/1`
 
   ## Advanced usage
   To build a more advanced terminal application including sub-commands, define a module and `use Prompt, otp_app: :your_app` then build a keyword list of `Prompt.Command` that represents your commands and arguments and pass them to `c:process/2`.
