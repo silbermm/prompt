@@ -429,13 +429,24 @@ defmodule Prompt do
     end)
   end
 
+  @table_options NimbleOptions.new!(
+                   header: [
+                     type: :boolean,
+                     default: false,
+                     doc: "Use the first element as the header for the table."
+                   ],
+                   border: [
+                     type: {:in, [:normal, :markdown]}
+                   ]
+                 )
+
   @doc section: :output
   @doc """
   Print an ASCII table of data. Requires a list of lists as input.
 
-  Available Options
+  Supported options:
+  #{NimbleOptions.docs(@table_options)}
 
-  * header: true | false (default)          --- use the first element as a header of the table
   * border: :normal (default) | :markdown   --- determine how the border is displayed
 
   ## Examples
@@ -469,9 +480,16 @@ defmodule Prompt do
   """
   @spec table(list(list()), keyword()) :: :ok
   def table(matrix, opts \\ []) when is_list(matrix) do
-    matrix
-    |> build_table(opts)
-    |> write()
+    case NimbleOptions.validate(opts, @table_options) do
+      {:ok, options} ->
+        matrix
+        |> build_table(options)
+        |> write()
+
+      {:error, err} ->
+        display(err.message, error: true)
+        :error
+    end
   end
 
   @doc """

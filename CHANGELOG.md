@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+  - use NimbleOptions to validate options
   - background_color as an option for displaying text
 
 ### Changed
