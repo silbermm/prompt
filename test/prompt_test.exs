@@ -52,14 +52,14 @@ defmodule PromptTest do
       assert capture_io("y", fn ->
                result = Prompt.choice("Send the email?", yes: "y", no: "n")
                assert result == :yes
-             end) == "\e[0m\e[49m\e[39mSend the email? (Y/n): \e[0m\e[0m"
+             end) =~ "Send the email? (Y/n): "
     end
 
     test "handle many custom choices" do
       assert capture_io("y", fn ->
                result = Prompt.choice("Send the email?", yes: "y", no: "n", cancel: "c")
                assert result == :yes
-             end) == "\e[0m\e[49m\e[39mSend the email? (Y/n/c): \e[0m\e[0m"
+             end) =~ "Send the email? (Y/n/c): "
     end
 
     test "handle many custom choices - default" do
@@ -70,7 +70,7 @@ defmodule PromptTest do
                  )
 
                assert result == :cancel
-             end) == "\e[0m\e[49m\e[39mSend the email? (y/n/C): \e[0m\e[0m"
+             end) =~ "Send the email? (y/n/C): "
     end
   end
 
@@ -79,38 +79,33 @@ defmodule PromptTest do
       assert capture_io("1", fn ->
                result = Prompt.select("Which email?", ["t@t.com", "a@a.com"])
                assert result == "t@t.com"
-             end) ==
-               "\e[0m\e[49m\e[39m\e[1m\n\e[1000D\e[2C[1] t@t.com\e[0m\e[0m\e[49m\e[39m\e[1m\n\e[1000D\e[2C[2] a@a.com\e[0m\n\n\e[1000D\e[49m\e[39mWhich email? [1-2]:"
+             end) =~ "Which email? [1-2]:"
     end
 
     test "requires choice from list" do
       assert capture_io("3", fn ->
                Prompt.select("Which email?", ["t@t.com", "a@a.com"])
-             end) ==
-               "\e[0m\e[49m\e[39m\e[1m\n\e[1000D\e[2C[1] t@t.com\e[0m\e[0m\e[49m\e[39m\e[1m\n\e[1000D\e[2C[2] a@a.com\e[0m\n\n\e[1000D\e[49m\e[39mWhich email? [1-2]:\e[39m\e[49m\e[1mEnter a number from 1-2: \e[0m"
+             end) =~ "Enter a number from 1-2: "
     end
 
     test "requires valid number" do
       assert capture_io("one", fn ->
                Prompt.select("Which email?", ["t@t.com", "a@a.com"])
-             end) ==
-               "\e[0m\e[49m\e[39m\e[1m\n\e[1000D\e[2C[1] t@t.com\e[0m\e[0m\e[49m\e[39m\e[1m\n\e[1000D\e[2C[2] a@a.com\e[0m\n\n\e[1000D\e[49m\e[39mWhich email? [1-2]:\e[39m\e[49m\e[1mEnter a number from 1-2: \e[0m"
+             end) =~ "Enter a number from 1-2: "
     end
 
     test "allows list of tuples" do
       assert capture_io("1", fn ->
                result = Prompt.select("Which email?", [{"t@t.com", "t"}, {"a@a.com", "a"}])
                assert result == "t"
-             end) ==
-               "\e[0m\e[49m\e[39m\e[1m\n\e[1000D\e[2C[1] t@t.com\e[0m\e[0m\e[49m\e[39m\e[1m\n\e[1000D\e[2C[2] a@a.com\e[0m\n\n\e[1000D\e[49m\e[39mWhich email? [1-2]:"
+             end) =~ "Which email? [1-2]:"
     end
 
     test "returns selected options(multi)" do
       assert capture_io("1 2", fn ->
                result = Prompt.select("Which email?", ["t@t.com", "a@a.com"], multi: true)
                assert result == ["t@t.com", "a@a.com"]
-             end) ==
-               "\e[0m\e[49m\e[39m\e[1m\n\e[1000D\e[2C[1] t@t.com\e[0m\e[0m\e[49m\e[39m\e[1m\n\e[1000D\e[2C[2] a@a.com\e[0m\n\n\e[1000D\e[49m\e[39mWhich email? [1-2]:"
+             end) =~ "Which email? [1-2]:"
     end
 
     test "allows list of tuples(multi)" do
@@ -119,22 +114,19 @@ defmodule PromptTest do
                  Prompt.select("Which email?", [{"t@t.com", "t"}, {"a@a.com", "a"}], multi: true)
 
                assert result == ["t", "a"]
-             end) ==
-               "\e[0m\e[49m\e[39m\e[1m\n\e[1000D\e[2C[1] t@t.com\e[0m\e[0m\e[49m\e[39m\e[1m\n\e[1000D\e[2C[2] a@a.com\e[0m\n\n\e[1000D\e[49m\e[39mWhich email? [1-2]:"
+             end) =~ "Which email? [1-2]:"
     end
 
     test "returns selected options(multi) - requires integers" do
       assert capture_io("one", fn ->
                Prompt.select("Which email?", ["t@t.com", "a@a.com"], multi: true)
-             end) ==
-               "\e[0m\e[49m\e[39m\e[1m\n\e[1000D\e[2C[1] t@t.com\e[0m\e[0m\e[49m\e[39m\e[1m\n\e[1000D\e[2C[2] a@a.com\e[0m\n\n\e[1000D\e[49m\e[39mWhich email? [1-2]:\e[39m\e[49m\e[1mEnter numbers from 1-2 seperated by spaces: \e[0m"
+             end) =~ "Enter numbers from 1-2 seperated by spaces: "
     end
 
     test "returns selected options(multi) - requires choice" do
       assert capture_io("3", fn ->
                Prompt.select("Which email?", ["t@t.com", "a@a.com"], multi: true)
-             end) ==
-               "\e[0m\e[49m\e[39m\e[1m\n\e[1000D\e[2C[1] t@t.com\e[0m\e[0m\e[49m\e[39m\e[1m\n\e[1000D\e[2C[2] a@a.com\e[0m\n\n\e[1000D\e[49m\e[39mWhich email? [1-2]:\e[39m\e[49m\e[1mEnter numbers from 1-2 seperated by spaces: \e[0m"
+             end) =~ "Enter numbers from 1-2 seperated by spaces: "
     end
   end
 
@@ -160,21 +152,19 @@ defmodule PromptTest do
     test "hides text on enter" do
       assert capture_io("\n", fn ->
                assert Prompt.display("password", mask_line: true) == :ok
-             end) ==
-               "\e[10000D\e[0m\e[49m\e[39mpassword\e[0m [Press Enter to continue]\e[0m\e[1A\e[2K\e[3m\e[92m#######\e[0m\n"
+             end) =~ "#######"
     end
 
     test "shows list of text" do
       assert capture_io(fn ->
                assert Prompt.display(["hello", "world"]) == :ok
-             end) ==
-               "\e[10000D\e[0m\e[49m\e[39mhello\e[0m\n\e[0m\e[10000D\e[0m\e[49m\e[39mworld\e[0m\n\e[0m"
+             end) =~ "world"
     end
 
     test "shows text on the right" do
       assert capture_io(fn ->
                assert Prompt.display("hello", position: :right) == :ok
-             end) == "\e[10000C\e[5D\e[0m\e[49m\e[39mhello\e[0m\n\e[0m"
+             end) =~ "hello"
     end
   end
 
