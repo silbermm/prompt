@@ -1,3 +1,17 @@
+defmodule FallbackCommand do
+  use Prompt.Command
+
+  @impl true
+  def init(_argv) do
+    %{}
+  end
+
+  @impl true
+  def process(_) do
+    display("fallback command")
+  end
+end
+
 defmodule ExampleCommand do
   use Prompt.Command
 
@@ -16,7 +30,7 @@ defmodule Example do
   use Prompt, otp_app: :prompt
 
   def main(argv) do
-    process(argv, test: ExampleCommand)
+    process(argv, [test: ExampleCommand], fallback: FallbackCommand)
   end
 
   @impl true
@@ -39,5 +53,11 @@ defmodule PromptModuleTest do
     assert capture_io(fn ->
              Example.main(["test"])
            end) =~ "test command"
+  end
+
+  test "fallback" do
+    assert capture_io(fn ->
+             Example.main(["whatever"])
+           end) =~ "fallback command"
   end
 end
