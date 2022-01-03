@@ -599,7 +599,7 @@ defmodule Prompt do
       defp parse_opts({[help: true], _, _}, _, _), do: :help
       defp parse_opts({[version: true], _, _}, _, _), do: :version
 
-      defp parse_opts({[], [head | rest], _invalid}, defined_commands, opts) do
+      defp parse_opts({[], [head | rest] = all, _invalid}, defined_commands, opts) do
         fallback = Keyword.get(opts, :fallback, nil)
 
         res =
@@ -613,7 +613,7 @@ defmodule Prompt do
             :help
 
           {nil, fallback_module} ->
-            {fallback_module, rest}
+            {fallback_module, all}
 
           _ ->
             {_, mod} = res
