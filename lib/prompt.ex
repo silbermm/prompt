@@ -30,7 +30,7 @@ defmodule Prompt do
     * free form text input            -> `text/1`
 
   ## Advanced usage
-  To build a more advanced terminal application including sub-commands, define a module and `use Prompt, otp_app: :your_app` then build a keyword list of `Prompt.Command` that represents your commands and arguments and pass them to `c:process/2`.
+  To build a more advanced terminal application including sub-commands, define a module and `use Prompt, otp_app: :your_app` then build a keyword list of `Prompt.Command` that represents your commands and arguments and pass them to `c:process/3`.
 
   Doing this will give you the following options out of the box:
 
@@ -45,9 +45,11 @@ defmodule Prompt do
     use Prompt, otp_app: :my_app
 
     # the entry point to your app, takes the command line args
+    # c:process/3 takes an optional keyword list of options where you can 
+    # provide a fallback module if no subcommands match
     def main(argv), do:
       argv
-      |> process(first: MyApp.CLI.FirstCommand)
+      |> process([first: MyApp.CLI.FirstCommand], fallback: MyFallbackModule)
     end
   end
 
@@ -136,8 +138,12 @@ defmodule Prompt do
 
   @doc """
   Process the command line arguments based on the defined commands
+
+  Takes an optional keyword list of options. Currently supported options include:
+    * fallback: module()  - a fallback module if not commands match 
+
   """
-  @callback process(argv(), command_list()) :: non_neg_integer()
+  @callback process(argv(), command_list(), keyword()) :: non_neg_integer()
 
   @doc """
   Prints help to the screen when there is an error, or `--help` is passed as an argument
@@ -551,13 +557,13 @@ defmodule Prompt do
       @app app
 
       @impl true
-      def process(argv, commands) do
+      def process(argv, commands, opts \\ []) do
         argv
         |> OptionParser.parse_head(
           strict: [help: :boolean, version: :boolean],
           aliases: [h: :help, v: :version]
         )
-        |> parse_opts(commands)
+        |> parse_opts(commands, opts)
         |> _process()
       end
 
@@ -590,21 +596,28 @@ defmodule Prompt do
         apply(module, :process, [cmd])
       end
 
-      defp parse_opts({[help: true], _, _}, _), do: :help
-      defp parse_opts({[version: true], _, _}, _), do: :version
+      defp parse_opts({[help: true], _, _}, _, _), do: :help
+      defp parse_opts({[version: true], _, _}, _, _), do: :version
 
-      defp parse_opts({[], [head | rest], _invalid}, defined_commands) do
+      defp parse_opts({[], [head | rest], _invalid}, defined_commands, opts) do
+        fallback = Keyword.get(opts, :fallback, nil)
+
         res =
           Enum.find(defined_commands, fn
             {h, _} when is_atom(h) -> head == Atom.to_string(h)
             {h, _} -> head == h
           end)
 
-        if res == nil do
-          :help
-        else
-          {_, mod} = res
-          {mod, rest}
+        case {res, fallback} do
+          {nil, nil} ->
+            :help
+
+          {nil, fallback_module} ->
+            {fallback_module, rest}
+
+          _ ->
+            {_, mod} = res
+            {mod, rest}
         end
       end
 
