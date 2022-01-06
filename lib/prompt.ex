@@ -150,6 +150,11 @@ defmodule Prompt do
   """
   @callback help() :: :ok
 
+  @doc """
+  Prints help to the screen when there is an error, or `--help` is passed as an argument
+  """
+  @callback help(atom()) :: :ok
+
   @colors Prompt.IO.Color.all()
 
   @confirm_options NimbleOptions.new!(
@@ -572,8 +577,26 @@ defmodule Prompt do
         0
       end
 
+      defp _process(:empty) do
+        help(:empty)
+        0
+      end
+
       @impl true
       def help() do
+        help =
+          case Code.fetch_docs(__MODULE__) do
+            {:docs_v1, _, :elixir, _, :none, _, _} -> "Help not available"
+            {:docs_v1, _, :elixir, _, %{"en" => module_doc}, _, _} -> module_doc
+            {:error, _} -> "Help not available"
+            _ -> "Help not available"
+          end
+
+        display(help)
+      end
+
+      @impl true
+      def help(_reason) do
         help =
           case Code.fetch_docs(__MODULE__) do
             {:docs_v1, _, :elixir, _, :none, _, _} -> "Help not available"
@@ -621,10 +644,11 @@ defmodule Prompt do
         end
       end
 
-      defp parse_opts(_, _), do: :help
+      defp parse_opts(_, _, _), do: :empty
 
       defoverridable process: 2
       defoverridable help: 0
+      defoverridable help: 1
     end
   end
 

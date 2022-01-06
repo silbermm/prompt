@@ -5,7 +5,7 @@ defmodule Prompt.MixProject do
     [
       app: :prompt,
       description: "A terminal toolkit and a set of helpers for building console applications.",
-      version: "0.7.2-beta",
+      version: "0.7.2",
       elixir: "~> 1.10",
       package: package(),
       source_url: "https://github.com/silbermm/prompt",
