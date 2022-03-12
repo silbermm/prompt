@@ -92,7 +92,6 @@ defmodule Prompt.Command do
   Processes the command and does the things required
   """
   @callback process(term) :: :ok | {:error, binary()}
-
   @doc false
   defmacro __using__(_opts) do
     quote do
