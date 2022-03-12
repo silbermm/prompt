@@ -574,12 +574,20 @@ defmodule Prompt do
 
       defp _process(:help) do
         help()
-        0
       end
 
       defp _process(:empty) do
         help(:empty)
-        0
+      end
+
+      defp _process(:version) do
+        {:ok, vsn} = :application.get_key(@app, :vsn)
+        display(List.to_string(vsn))
+      end
+
+      defp _process({module, opts}) do
+        cmd = apply(module, :init, [opts])
+        apply(module, :process, [cmd])
       end
 
       @impl true
@@ -608,16 +616,6 @@ defmodule Prompt do
         display(help)
       end
 
-      defp _process(:version) do
-        {:ok, vsn} = :application.get_key(@app, :vsn)
-        _ = display(List.to_string(vsn))
-        0
-      end
-
-      defp _process({module, opts}) do
-        cmd = apply(module, :init, [opts])
-        apply(module, :process, [cmd])
-      end
 
       defp parse_opts({[help: true], _, _}, _, _), do: :help
       defp parse_opts({[version: true], _, _}, _, _), do: :version
@@ -635,13 +633,18 @@ defmodule Prompt do
           {nil, nil} ->
             :help
 
-          {nil, fallback_module} ->
-            {fallback_module, all}
+          {nil, fallback} ->
+            {fallback, all}
 
           _ ->
             {_, mod} = res
             {mod, rest}
         end
+      end
+
+      defp parse_opts({passed_flags, [], _invalid}, defined_commands, opts) do
+        fallback = Keyword.get(opts, :fallback, nil)
+        {fallback, passed_flags}
       end
 
       defp parse_opts(_, _, _), do: :empty
