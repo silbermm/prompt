@@ -575,7 +575,7 @@ defmodule Prompt do
       def process(argv, commands, opts \\ []) do
         argv
         |> OptionParser.parse_head(
-          strict: [help: :boolean, version: :boolean],
+          switches: [help: :boolean, version: :boolean],
           aliases: [h: :help, v: :version]
         )
         |> parse_opts(commands, opts)
@@ -626,11 +626,14 @@ defmodule Prompt do
         display(help)
       end
 
-
       defp parse_opts({[help: true], _, _}, _, _), do: :help
       defp parse_opts({[version: true], _, _}, _, _), do: :version
 
-      defp parse_opts({[], [head | rest] = all, _invalid}, defined_commands, opts) do
+      defp parse_opts(
+             {[], [head | rest] = all, undefined_flags} = everything,
+             defined_commands,
+             opts
+           ) do
         fallback = Keyword.get(opts, :fallback, nil)
 
         res =
@@ -652,9 +655,20 @@ defmodule Prompt do
         end
       end
 
-      defp parse_opts({passed_flags, [], _invalid}, defined_commands, opts) do
+      defp parse_opts({passed_flags, [], _} = everything, defined_commands, opts) do
         fallback = Keyword.get(opts, :fallback, nil)
-        {fallback, passed_flags}
+
+        # convert back to flags to pass to the fallback command
+        flags =
+          passed_flags
+          |> Enum.reduce([], fn
+            {k, true}, acc -> ["--#{to_string(k)}" | acc]
+            {k, false}, acc -> ["--#{to_string(k)}" | acc]
+            {k, v}, acc -> [v, "--#{to_string(k)}" | acc]
+          end)
+          |> Enum.reverse()
+
+        {fallback, flags}
       end
 
       defp parse_opts(_, _, _), do: :empty
