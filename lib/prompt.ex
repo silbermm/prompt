@@ -567,6 +567,7 @@ defmodule Prompt do
 
     quote(bind_quoted: [app: app]) do
       @behaviour Prompt
+
       import Prompt
 
       @app app
