@@ -19,13 +19,18 @@ defmodule Prompt.Example.Command2 do
   use Prompt.Command
 
   @impl true
-  def init(opts) do
-    opts
+  def process(cmd) do
+    cmd
   end
+end
+
+defmodule Prompt.Example.FallbackCommand do
+  use Prompt.Command
 
   @impl true
   def process(cmd) do
-    cmd
+    IO.inspect(cmd)
+    display("fallback command")
   end
 end
 
@@ -39,14 +44,18 @@ defmodule Prompt.Example do
 
   use Prompt.Router, otp_app: :prompt
 
-  commands do
-    command :cmd1, Prompt.Example.Command1 do
-      arg(:limit, :integer, default: 6)
-      arg(:print, :boolean)
-    end
+  command :cmd1, Prompt.Example.Command1 do
+    arg(:limit, :integer, default: 6)
+    arg(:print, :boolean)
+  end
 
-    command :cmd2, Prompt.Example.Command2 do
-      arg(:whatever, :string, [])
-    end
+  command :cmd2, Prompt.Example.Command2 do
+    arg(:whatever, :string, [])
+  end
+
+  command "", Prompt.Example.FallbackCommand do
+    arg(:blah, :boolean)
+    arg(:cmd1, :boolean)
+    arg(:limit, :integer)
   end
 end

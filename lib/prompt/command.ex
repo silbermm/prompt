@@ -99,6 +99,7 @@ defmodule Prompt.Command do
       import Prompt
 
       @doc false
+      @impl Prompt.Command
       def help() do
         help =
           case Code.fetch_docs(__MODULE__) do
@@ -111,32 +112,30 @@ defmodule Prompt.Command do
         display(help)
       end
 
-      @before_compile Prompt.Command
-
       defoverridable help: 0
+
+      @doc false
+      @impl Prompt.Command
+      def init(init_arg) do
+        init_arg
+      end
+
+      defoverridable init: 1
+
+      @before_compile Prompt.Command
     end
   end
 
   defmacro __before_compile__(env) do
-    unless Module.defines?(env.module, {:init, 1}) do
+    unless Module.defines?(env.module, {:process, 1}) do
       message = """
-      function init/1 required by behaviour Prompt.Command is not implemented \
+      function process/1 required by behaviour Prompt.Command is not implemented \
       (in module #{inspect(env.module)}).
 
-      You'll need to create the function that takes a list of input and converts
-      it to a data struture that is passed to your process/1 function.
+      You'll need to create the function that takes a list of input and preforms the appropriate actions.
       """
 
       IO.warn(message, Macro.Env.stacktrace(env))
-
-      quote do
-        @doc false
-        def init(init_arg) do
-          init_arg
-        end
-
-        defoverridable init: 1
-      end
     end
   end
 end

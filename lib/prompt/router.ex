@@ -11,15 +11,17 @@ defmodule Prompt.Router do
   @doc """
   Prints help to the screen when there is an error, or `--help` is passed as an argument
   """
-  @callback help(atom()) :: :non_neg_integer
+  @callback help(String.t()) :: :non_neg_integer
 
   defmacro __using__(opts) do
     app = Keyword.get(opts, :otp_app, nil)
 
-    quote do
+    quote location: :keep do
       require unquote(__MODULE__)
       import unquote(__MODULE__)
-      import Prompt
+      import Prompt, only: [display: 1, display: 2]
+
+      Module.register_attribute(__MODULE__, :commands, accumulate: true, persist: true)
 
       @behaviour Prompt.Router
 
@@ -46,6 +48,10 @@ defmodule Prompt.Router do
             help()
             0
 
+          {:help, reason} ->
+            help(reason)
+            0
+
           :version ->
             {:ok, vsn} = :application.get_key(@app, :vsn)
             display(List.to_string(vsn))
@@ -64,38 +70,73 @@ defmodule Prompt.Router do
           switches: [help: :boolean, version: :boolean],
           aliases: [h: :help, v: :version]
         )
-        |> parse_opts(commands)
+        |> parse_opts(commands, argv)
       end
 
       # if help or version were passed, process them and exit
-      defp parse_opts({[help: true], _, _}, _), do: :help
-      defp parse_opts({[version: true], _, _}, _), do: :version
+      defp parse_opts({[help: true], _, _}, _, _), do: :help
+      defp parse_opts({[version: true], _, _}, _, _), do: :version
 
-      defp parse_opts({[], [head | rest] = all, _} = everything, defined_commands) do
-        res =
-          Enum.find(defined_commands, fn
-            %{command_name: command_name_atom} -> head == to_string(command_name_atom)
-            _ -> false
-          end)
+      defp parse_opts({_, additional, _}, defined_commands, original) do
+        case additional do
+          [head | rest] ->
+            # if there is an array of data, then a subcommand was passed in
+            command = find_in_defined_commands(defined_commands, head)
 
-        case res do
-          nil ->
-            :help
+            if command == nil do
+              # try fallback option
+              fallback_command(original, defined_commands)
+            else
+              # process the options for the module
+              switches = build_parser_switches(command)
+              {parsed, leftover, _} = OptionParser.parse_head(rest, switches: switches)
+              data = build_command_data(command, parsed, leftover)
+              {command.module, data}
+            end
 
-          _ ->
-            # process the options for the module
-            switches = Enum.map(res.arguments, &{&1.name, &1.type})
-            {parsed, left_over, _} = OptionParser.parse_head(rest, switches: switches)
-
-            data =
-              res.arguments
-              |> Enum.reduce(%{}, fn arg, acc ->
-                Map.put_new(acc, arg.name, Keyword.get(parsed, arg.name, default_value(arg)))
-              end)
-              |> Map.put_new(:leftover, left_over)
-
-            {res.module, data}
+          [] ->
+            # no subcommand was passed in try the fallback module
+            fallback_command(original, defined_commands)
         end
+      end
+
+      defp fallback_command(original_args, defined_commands) do
+        # no subcommand was passed in try the fallback module
+        fallback = find_in_defined_commands(defined_commands, "")
+
+        if fallback == nil do
+          {:help, "invalid flag or command"}
+        else
+          switches = build_parser_switches(fallback)
+          {parsed, leftover, _} = OptionParser.parse(original_args, switches: switches)
+          data = build_command_data(fallback, parsed, leftover)
+          {fallback.module, data}
+        end
+      end
+
+      defp find_in_defined_commands(defined_commands, "") do
+        Enum.find(defined_commands, fn
+          %{command_name: ""} -> true
+          _ -> false
+        end)
+      end
+
+      defp find_in_defined_commands(defined_commands, command_value) do
+        Enum.find(defined_commands, fn
+          %{command_name: command_name_atom} -> command_value == to_string(command_name_atom)
+          _ -> false
+        end)
+      end
+
+      defp build_parser_switches(nil), do: []
+      defp build_parser_switches(command), do: Enum.map(command.arguments, &{&1.name, &1.type})
+
+      defp build_command_data(command, parsed, leftover) do
+        command.arguments
+        |> Enum.reduce(%{}, fn arg, acc ->
+          Map.put_new(acc, arg.name, Keyword.get(parsed, arg.name, default_value(arg)))
+        end)
+        |> Map.put_new(:leftover, leftover)
       end
 
       defp default_value(%{type: type, options: [_ | _] = opts}),
@@ -120,7 +161,7 @@ defmodule Prompt.Router do
       end
 
       @impl true
-      def help(_reason) do
+      def help(reason) do
         help =
           case Code.fetch_docs(__MODULE__) do
             {:docs_v1, _, :elixir, _, :none, _, _} -> "Help not available"
@@ -129,19 +170,13 @@ defmodule Prompt.Router do
             _ -> "Help not available"
           end
 
+        display(reason, color: :red)
         display(help)
       end
     end
   end
 
-  defmacro commands(do: block) do
-    quote do
-      Module.register_attribute(__MODULE__, :commands, accumulate: true, persist: true)
-      unquote(block)
-    end
-  end
-
-  defmacro command(name, module, do: block) when is_atom(name) do
+  defmacro command(name, module, do: block) do
     args =
       case block do
         {:__block__, _, arguments} -> arguments
@@ -161,7 +196,17 @@ defmodule Prompt.Router do
     end
   end
 
-  defmacro command(_name, _module, do: _block), do: raise("command name must be an atom")
+  defmacro command(name, module) do
+    quote do
+      res = %{
+        command_name: unquote(name),
+        module: unquote(module),
+        arguments: []
+      }
+
+      Module.put_attribute(__MODULE__, :commands, res)
+    end
+  end
 
   defmacro arg(arg_name, arg_type, opts \\ []) do
     quote do
