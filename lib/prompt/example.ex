@@ -1,4 +1,5 @@
 defmodule Prompt.Example.Command1 do
+  @moduledoc false
   use Prompt.Command
 
   defstruct [:limit, :print]
@@ -11,11 +12,11 @@ defmodule Prompt.Example.Command1 do
   @impl true
   def process(%__MODULE__{} = cmd) do
     display("cmd1 ran - limit: #{cmd.limit}!", color: :red)
-    0
   end
 end
 
 defmodule Prompt.Example.Command2 do
+  @moduledoc false
   use Prompt.Command
 
   @impl true
@@ -25,6 +26,7 @@ defmodule Prompt.Example.Command2 do
 end
 
 defmodule Prompt.Example.FallbackCommand do
+  @moduledoc false
   use Prompt.Command
 
   @impl true
@@ -35,12 +37,7 @@ defmodule Prompt.Example.FallbackCommand do
 end
 
 defmodule Prompt.Example do
-  @moduledoc """
-  Example usage of Prompt
-
-    --help    Show this help message
-    --version Show the version of the app
-  """
+  @moduledoc false
 
   use Prompt.Router, otp_app: :prompt
 

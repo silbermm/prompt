@@ -1,17 +1,94 @@
 defmodule Prompt.Router do
   @moduledoc """
   Router for Prompt
+
+  Simplifies defining commands, sub-commands and arguments.
+
+  Choose the module responsible for taking the command line arguments and 
+  `use Prompt.Router, otp_app: :your_app` at the top.
+
+  Then simply define your commands and arguments.
+
+  Exposes a main/1 function that is called with the command line args
+
+  ## Example
+
+  ```elixir
+  defmodule My.CLI do
+    use Prompt.Router, otp_app: :my_app
+
+    command :checkout, My.CheckoutCommand do
+      arg :help, :boolean
+      arg :branch, :string, default: "main"
+    end
+
+    command "", My.DefaultCommand do
+      arg :info, :boolean
+    end
+  end
+
+  defmodule My.CheckoutCommand do
+    use Prompt.Command
+
+    @impl true
+    def process(arguments) do
+      # arguments will be a map of the defined arguments and their values
+      # from the command line input
+      # If someone used the command and passed `--branch  feature/test`, then
+      # `argmuments would look like `%{help: false, branch: "feature/test"}`
+      display("checking out " <> arguments.branch)
+    end
+  end
+
+  defmodule My.DefaultCommand do
+    use Prompt.Command
+
+    @impl true
+    def init(arguments) do
+      # you can implement the `c:init/1` callback to transform
+      # the arguments before `c:process/1` is called if you want
+      arguments
+    end
+    
+    @impl true
+    def process(arguments) do
+      # arguments will have a key of `:leftover` for anything
+      # passed to the command that doesn't have a `arg` defined.
+      # IF someone called this with `--info --test something`, then then
+      # arguments will look like `%{info: true, leftover: ["--test", "something"]}`
+      display("showing info")
+    end
+  end
+  ```
+
   """
 
   @doc """
-  Prints help to the screen when there is an error, or `--help` is passed as an argument
+  The function responsible for filtering and calling the correct command 
+  module based on command line input
   """
-  @callback help() :: :non_neg_integer
+  @callback main([binary()]) :: non_neg_integer()
 
   @doc """
-  Prints help to the screen when there is an error, or `--help` is passed as an argument
+  Prints help to the screen when there is an error, or `--help` is passed as an argument. 
+
+  Overridable
   """
-  @callback help(String.t()) :: :non_neg_integer
+  @callback help() :: non_neg_integer()
+
+  @doc """
+  Prints help to the screen when there is an error with a string indicating the error
+
+  Overridable
+  """
+  @callback help(String.t()) :: non_neg_integer()
+
+  @doc """
+  Prints the version from the projects mix.exs file
+
+  Overridable
+  """
+  @callback version() :: non_neg_integer()
 
   defmacro __using__(opts) do
     app = Keyword.get(opts, :otp_app, nil)
@@ -27,11 +104,7 @@ defmodule Prompt.Router do
 
       @app unquote(app)
 
-      @doc """
-      Takes the command line arguments as a list
-      parses them and calls the correct module with
-      the correct options
-      """
+      @impl true
       def main(args) do
         commands =
           __MODULE__.module_info()
@@ -46,16 +119,12 @@ defmodule Prompt.Router do
         case process(args, commands) do
           :help ->
             help()
-            0
 
           {:help, reason} ->
             help(reason)
-            0
 
           :version ->
-            {:ok, vsn} = :application.get_key(@app, :vsn)
-            display(List.to_string(vsn))
-            0
+            version()
 
           {mod, data} ->
             transformed = apply(mod, :init, [data])
@@ -158,6 +227,7 @@ defmodule Prompt.Router do
           end
 
         display(help)
+        0
       end
 
       @impl true
@@ -172,10 +242,27 @@ defmodule Prompt.Router do
 
         display(reason, color: :red)
         display(help)
+        1
       end
+
+      @impl true
+      def version() do
+        {:ok, vsn} = :application.get_key(@app, :vsn)
+        display(List.to_string(vsn))
+        0
+      end
+
+      defoverridable help: 0
+      defoverridable help: 1
+      defoverridable version: 0
     end
   end
 
+  @doc """
+  Name of the subcommand that is expectedaany()
+
+  Takes an atom or string as the command name and a Prompt.Command module.
+  """
   defmacro command(name, module, do: block) do
     args =
       case block do

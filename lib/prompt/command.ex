@@ -32,8 +32,8 @@ defmodule Prompt.Command do
 
     @impl true
     def init(_argv) do
-      # parse list of args to map or struct
-      %{list: true, help: false, directory: "path/to/dir"}
+      # parse list of args to a struct if desired
+      %SomeStruct{list: true, help: false, directory: "path/to/dir"}
     end
 
     @impl true
@@ -42,27 +42,6 @@ defmodule Prompt.Command do
       display(File.ls!(dir))
     end
 
-  end
-  ```
-
-  Typically one will use the `OptionParser.parse/1` function to parse
-  the command
-
-  ```
-  defp parse(argv) do
-   argv
-   |> OptionParser.parse(
-    strict: [help: :boolean, directory: :string, list: :boolean],
-    aliases: [h: :help, d: :directory]
-   )
-   |> _parse()
-  end
-
-  defp _parse({opts, _, _}) do
-   help = Keyword.get(opts, :help, false)
-   dir = Keyword.get(opts, :directory, "./")
-   list = Keyword.get(opts, :length, true)
-   %{help: help, directory: dir, list: list}
   end
   ```
 
@@ -81,7 +60,7 @@ defmodule Prompt.Command do
   Takes the options passed in via the command line and
   tramforms them into a struct that the process command can handle
   """
-  @callback init(list(String.t())) :: term
+  @callback init(map()) :: term
 
   @doc """
   Prints the help available for this command
