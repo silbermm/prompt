@@ -31,7 +31,6 @@ defmodule Prompt.Example.FallbackCommand do
 
   @impl true
   def process(cmd) do
-    IO.inspect(cmd)
     display("fallback command")
   end
 end

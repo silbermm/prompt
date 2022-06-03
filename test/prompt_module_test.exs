@@ -27,10 +27,14 @@ defmodule ExampleCommand do
 end
 
 defmodule Example do
-  use Prompt, otp_app: :prompt
+  use Prompt.Router, otp_app: :prompt
 
-  def main(argv) do
-    process(argv, [test: ExampleCommand], fallback: FallbackCommand)
+  command :test, ExampleCommand do
+    arg :help, :boolean
+  end
+
+  command "", FallbackCommand do
+    arg :help, :boolean
   end
 
   @impl true
