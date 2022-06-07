@@ -135,6 +135,20 @@ defmodule PromptTest do
                assert result == "t@t.com"
              end)
     end
+
+    test "validates min length" do
+      assert capture_io("t@", fn ->
+               result = Prompt.text("email address", min: 3)
+               assert result == :error_min
+             end)
+    end
+
+    test "validates max length" do
+      assert capture_io("t@t.com", fn ->
+               result = Prompt.text("email address", max: 3)
+               assert result == :error_max
+             end)
+    end
   end
 
   describe "password" do
