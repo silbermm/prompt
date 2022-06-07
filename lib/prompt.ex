@@ -264,7 +264,17 @@ defmodule Prompt do
                     doc:
                       "The background color. One of `#{Kernel.inspect(@colors)}`. Defaults to the terminal default."
                   ],
-                  trim: [type: :boolean, default: false, doc: false]
+                  trim: [type: :boolean, default: false, doc: false],
+                  min: [
+                    type: :integer,
+                    default: 0,
+                    doc: "The minimum charactors required for input"
+                  ],
+                  max: [
+                    type: :integer,
+                    default: 0,
+                    doc: "The maximum charactors required for input"
+                  ]
                 )
 
   @doc section: :input
@@ -280,7 +290,7 @@ defmodule Prompt do
       "Enter your email:" t@t.com
       iex> t@t.com
   """
-  @spec text(String.t(), keyword()) :: String.t() | :error
+  @spec text(String.t(), keyword()) :: String.t() | :error | :error_min | :error_max
   def text(display, opts \\ []) do
     run(opts, @text_options, fn options ->
       Prompt.IO.Text.new(display, options)
