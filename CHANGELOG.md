@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added 
+  - Prompt.Router to simplify creating commands
+    - introduces the `command` and `arg` macros
+
+## [0.7.4] - 2022-06-06
 ### Added
   - min and max validations for text entry
 
@@ -43,7 +48,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
   - Instead of taking a list of tuples for commands (`[{"command", Module"}]`), now take a Keyword list (`[command: Module]`)
 
-[Unreleased]: https://github.com/silbermm/prompt/compare/v0.6.3...HEAD
+[Unreleased]: https://github.com/silbermm/prompt/compare/v0.7.4...HEAD
+[0.7.4]: https://github.com/silbermm/prompt/releases/tag/v0.7.4
 [0.6.3]: https://github.com/silbermm/prompt/releases/tag/v0.6.3
 [0.6.2]: https://github.com/silbermm/prompt/releases/tag/v0.6.2
 [0.6.1]: https://github.com/silbermm/prompt/releases/tag/v0.6.1

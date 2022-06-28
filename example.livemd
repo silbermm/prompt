@@ -99,13 +99,11 @@ end
 
 ## Call your new Command
 
-We'll have to simulate calling the command in this notebook by passing a list of flags to `CLI.main/1`.
-
-<!-- livebook:{"livebook_object":"cell_input","name":"input","reactive":true,"type":"text","value":"Matt"} -->
-
 ```elixir
-CLI.main(["hello", IO.gets("input")])
+CLI.main(["hello", "some name"])
 ```
+
+We'll have to simulate calling the command in this notebook by passing a list of flags to `CLI.main/1`.
 
 ## Bundle and Distribute
 

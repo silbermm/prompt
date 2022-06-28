@@ -30,74 +30,7 @@ defmodule Prompt do
     * free form text input            -> `text/1`
 
   ## Advanced usage
-  To build a more advanced terminal application including sub-commands, define a module and `use Prompt, otp_app: :your_app` then build a keyword list of `Prompt.Command` that represents your commands and arguments and pass them to `c:process/3`.
-
-  Doing this will give you the following options out of the box:
-
-   * `--version` will pull your app version from mix.exs
-   * `--help` will print your @moduledoc for help.
-
-  ## Example
-
-  ```elixir
-  defmodule MyApp.CLI do
-    @moduledoc "This will print when a user types `myapp --help` in the commandline"
-    use Prompt, otp_app: :my_app
-
-    # the entry point to your app, takes the command line args
-    # c:process/3 takes an optional keyword list of options where you can 
-    # provide a fallback module if no subcommands match
-    def main(argv), do:
-      argv
-      |> process([first: MyApp.CLI.FirstCommand], fallback: MyFallbackModule)
-    end
-  end
-
-  # a command
-  defmodule MyApp.CLI.FirstCommand do
-    @moduledoc "This prints when the help() command is called"
-    use Prompt.Command
-
-    @impl true
-    def init(argv) do
-      argv
-      |> OptionParser.parse(
-        strict: [help: :boolean, switch1: :boolean, swtich2: :boolean],
-        aliases: [h: :help]
-      )
-      |> parse() #whatever you return from init will be what is passed to `process/1`
-    end
-
-    @impl true
-    def process(%{help: true}, do: help()
-    def process(%{switch1: switch1, switch2: switch2} do
-      # do something based on the command and switches
-      display("command output")
-    end
-
-    defp parse({[help: true], _, _}, do: %{help: true}
-    defp parse({opts, _, _}) do
-      switch1 = Keyword.get(opts, :switch1, false)
-      switch2 = Keyword.get(opts, :switch2, false)
-      %{help: false, switch1: switch1, switch2: switch2}
-    end
-  end
-  ```
-
-  The key in the Keyword list that you pass to process/2 is what you expect the user to use as a command, the value is the `Prompt.Command` module that will process the command.
-
-  Once built, your command will be able to take a `first` subcommand.
-
-  ```bash
-  >>> my_app first --switch1
-  command output
-  ...
-  >>> my_app --version
-  0.0.1
-  ```
-
-  By default we try to display the @moduledoc when there is an error or when --help is passed in. This is overrideable though by implementing your own version of `c:help/0`.
-
+  See `Prompt.Router`
 
   ## Building for Distribution
 
@@ -135,25 +68,6 @@ defmodule Prompt do
   The list of strings coming from the commmand-line arguments
   """
   @type argv() :: list(String.t())
-
-  @doc """
-  Process the command line arguments based on the defined commands
-
-  Takes an optional keyword list of options. Currently supported options include:
-    * fallback: module()  - a fallback module if not commands match 
-
-  """
-  @callback process(argv(), command_list(), keyword()) :: non_neg_integer()
-
-  @doc """
-  Prints help to the screen when there is an error, or `--help` is passed as an argument
-  """
-  @callback help() :: :ok
-
-  @doc """
-  Prints help to the screen when there is an error, or `--help` is passed as an argument
-  """
-  @callback help(atom()) :: :ok
 
   @colors Prompt.IO.Color.all()
 
@@ -556,113 +470,6 @@ defmodule Prompt do
       end
 
     [first, next, rest, last]
-  end
-
-  defmacro __using__(opts) do
-    app = Keyword.get(opts, :otp_app, nil)
-
-    if app == nil do
-      raise ":otp_app is a required option when using Prompt"
-    end
-
-    quote(bind_quoted: [app: app]) do
-      @behaviour Prompt
-      import Prompt
-
-      @app app
-
-      @impl true
-      def process(argv, commands, opts \\ []) do
-        argv
-        |> OptionParser.parse_head(
-          strict: [help: :boolean, version: :boolean],
-          aliases: [h: :help, v: :version]
-        )
-        |> parse_opts(commands, opts)
-        |> _process()
-      end
-
-      defp _process(:help) do
-        help()
-      end
-
-      defp _process(:empty) do
-        help(:empty)
-      end
-
-      defp _process(:version) do
-        {:ok, vsn} = :application.get_key(@app, :vsn)
-        display(List.to_string(vsn))
-      end
-
-      defp _process({module, opts}) do
-        cmd = apply(module, :init, [opts])
-        apply(module, :process, [cmd])
-      end
-
-      @impl true
-      def help() do
-        help =
-          case Code.fetch_docs(__MODULE__) do
-            {:docs_v1, _, :elixir, _, :none, _, _} -> "Help not available"
-            {:docs_v1, _, :elixir, _, %{"en" => module_doc}, _, _} -> module_doc
-            {:error, _} -> "Help not available"
-            _ -> "Help not available"
-          end
-
-        display(help)
-      end
-
-      @impl true
-      def help(_reason) do
-        help =
-          case Code.fetch_docs(__MODULE__) do
-            {:docs_v1, _, :elixir, _, :none, _, _} -> "Help not available"
-            {:docs_v1, _, :elixir, _, %{"en" => module_doc}, _, _} -> module_doc
-            {:error, _} -> "Help not available"
-            _ -> "Help not available"
-          end
-
-        display(help)
-      end
-
-
-      defp parse_opts({[help: true], _, _}, _, _), do: :help
-      defp parse_opts({[version: true], _, _}, _, _), do: :version
-
-      defp parse_opts({[], [head | rest] = all, _invalid}, defined_commands, opts) do
-        fallback = Keyword.get(opts, :fallback, nil)
-
-        res =
-          Enum.find(defined_commands, fn
-            {h, _} when is_atom(h) -> head == Atom.to_string(h)
-            {h, _} -> head == h
-          end)
-
-        case {res, fallback} do
-          {nil, nil} ->
-            :help
-
-          {nil, fallback} ->
-            {fallback, all}
-
-          _ ->
-            {_, mod} = res
-            {mod, rest}
-        end
-      end
-
-      defp parse_opts({passed_flags, [], _invalid}, defined_commands, opts) do
-        fallback = Keyword.get(opts, :fallback, nil)
-        {fallback, passed_flags}
-      end
-
-      defp parse_opts(_, _, _), do: :empty
-
-      defoverridable process: 2
-      defoverridable help: 0
-      defoverridable help: 1
-    end
   end
 
   defp run(opts, validation, io) do

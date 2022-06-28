@@ -33,7 +33,7 @@ Add `prompt` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:prompt, "~> 0.5"}
+    {:prompt, "~> 0.7.4"}
   ]
 end
 ```
