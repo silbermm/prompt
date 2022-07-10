@@ -11,7 +11,7 @@ defmodule Prompt.MixProject do
       source_url: "https://github.com/silbermm/prompt",
       dialyzer: [
         # plt_file: {:no_warn, "priv/plts/dialyzer.plt"},
-        flags: ["-Wunmatched_returns", :error_handling, :race_conditions, :underspecs]
+        flags: ["-Wunmatched_returns", :error_handling, :underspecs]
       ],
       docs: docs(),
       start_permanent: Mix.env() == :prod,
@@ -21,7 +21,7 @@ defmodule Prompt.MixProject do
 
   def application do
     [
-      extra_applications: [:logger]
+      extra_applications: [:logger, :iex]
     ]
   end
 
