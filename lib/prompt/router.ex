@@ -67,7 +67,7 @@ defmodule Prompt.Router do
   The function responsible for filtering and calling the correct command 
   module based on command line input
   """
-  @callback main([binary()]) :: non_neg_integer()
+  @callback main([binary()]) :: no_return()
 
   @doc """
   Prints help to the screen when there is an error, or `--help` is passed as an argument. 
