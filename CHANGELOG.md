@@ -6,7 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
-
+  - Better support for halting the runtime when a command is finished
+    - a new callback `handle_exit_value/1` that is overrideable and called after each command is done.
 
 ## [0.8.0] - 2022-06-27
 ### Added 

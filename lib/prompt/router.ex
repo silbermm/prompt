@@ -90,6 +90,17 @@ defmodule Prompt.Router do
   """
   @callback version() :: non_neg_integer()
 
+  @doc """
+  This function is called after the main function is done.
+
+  It does it's best to handle any value returned from a command and turn 
+  it into an integer, 0 being a succesful command and any non-zero being
+  and error.
+
+  Overridable
+  """
+  @callback handle_exit_value(any()) :: no_return()
+
   defmacro __using__(opts) do
     app = Keyword.get(opts, :otp_app, nil)
 
@@ -118,17 +129,18 @@ defmodule Prompt.Router do
 
         case Prompt.Router.process(args, commands) do
           :help ->
-            help()
+            handle_exit_value(help())
 
           {:help, reason} ->
-            help(reason)
+            handle_exit_value(help(reason))
 
           :version ->
-            version()
+            handle_exit_value(version())
 
           {mod, data} ->
             transformed = apply(mod, :init, [data])
-            apply(mod, :process, [transformed])
+            result = apply(mod, :process, [transformed])
+            handle_exit_value(result)
         end
       end
 
@@ -168,9 +180,28 @@ defmodule Prompt.Router do
         0
       end
 
+      @impl true
+      def handle_exit_value(:ok), do: handle_exit_value(0)
+
+      def handle_exit_value({:error, _reason}) do
+        handle_exit_value(1)
+      end
+
+      def handle_exit_value(val) when is_integer(val) and val >= 0 do
+        # Prevent exiting if running from an iex console.
+        unless Code.ensure_loaded?(IEx) and IEx.started?() do
+          System.halt(val)
+        end
+      end
+
+      def handle_exit_value(anything_else) do
+        handle_exit_value(2)
+      end
+
       defoverridable help: 0
       defoverridable help: 1
       defoverridable version: 0
+      defoverridable handle_exit_value: 1
     end
   end
 
