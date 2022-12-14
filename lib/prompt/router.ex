@@ -95,9 +95,9 @@ defmodule Prompt.Router do
 
   It does it's best to handle any value returned from a command and turn 
   it into an integer, 0 being a succesful command and any non-zero being
-  and error.
+  an error.
 
-  Overridable
+  Overrideable
   """
   @callback handle_exit_value(any()) :: no_return()
 
