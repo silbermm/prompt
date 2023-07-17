@@ -94,7 +94,7 @@ defmodule Prompt.Router do
   This function is called after the main function is done.
 
   It does it's best to handle any value returned from a command and turn 
-  it into an integer, 0 being a succesful command and any non-zero being
+  it into an integer, 0 being a successful command and any non-zero being
   an error.
 
   Overrideable
@@ -227,8 +227,8 @@ defmodule Prompt.Router do
         command = find_in_defined_commands(defined_commands, head)
 
         if command == nil do
-          # try fallback option
-          fallback_command(original, defined_commands)
+          # the passed in command or option is not recognized
+          {:help, "Unrecognized option - #{head}"}
         else
           # process the options for the module
           switches = build_parser_switches(command)
