@@ -46,9 +46,16 @@ defmodule Prompt.IO.Password do
           write(IO.ANSI.reset())
           :error
 
-        answer ->
+        answer when is_binary(answer) ->
           write(IO.ANSI.reset())
           String.trim(answer)
+
+        answer when is_list(answer) ->
+          write(IO.ANSI.reset())
+
+          answer
+          |> IO.chardata_to_string()
+          |> String.trim()
       end
     end
 

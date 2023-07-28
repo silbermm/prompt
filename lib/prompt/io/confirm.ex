@@ -77,12 +77,19 @@ defmodule Prompt.IO.Confirm do
         {:error, _reason} ->
           :error
 
-        answer ->
+        answer when is_binary(answer) ->
           if confirm.mask_line do
             Prompt.Position.mask_line(1)
           end
 
           evaluate_confirm(%{confirm | answer: answer})
+
+        answer when is_list(answer) ->
+          if confirm.mask_line do
+            Prompt.Position.mask_line(1)
+          end
+
+          evaluate_confirm(%{confirm | answer: IO.chardata_to_string(answer)})
       end
     end
 
