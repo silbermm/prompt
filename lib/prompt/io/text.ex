@@ -54,14 +54,24 @@ defmodule Prompt.IO.Text do
         {:error, _reason} ->
           :error
 
-        answer ->
-          answer = String.trim(answer)
+        answer when is_binary(answer) ->
+          answer
+          |> String.trim()
+          |> do_evaluate(txt)
 
-          case {determine_min(answer, txt), determine_max(answer, txt)} do
-            {false, _} -> :error_min
-            {true, false} -> :error_max
-            {true, true} -> answer
-          end
+        answer when is_list(answer) ->
+          answer
+          |> IO.chardata_to_string()
+          |> String.trim()
+          |> do_evaluate(txt)
+      end
+    end
+
+    defp do_evaluate(answer, txt) do
+      case {determine_min(answer, txt), determine_max(answer, txt)} do
+        {false, _} -> :error_min
+        {true, false} -> :error_max
+        {true, true} -> answer
       end
     end
 

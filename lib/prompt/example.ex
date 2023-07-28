@@ -30,7 +30,7 @@ defmodule Prompt.Example.FallbackCommand do
   use Prompt.Command
 
   @impl true
-  def process(cmd) do
+  def process(_cmd) do
     display("fallback command")
   end
 end

@@ -56,7 +56,8 @@ defmodule Prompt.IO.Choice do
       case read(:stdio, :line) do
         :eof -> :error
         {:error, _reason} -> :error
-        answer -> _evaluate_choice(answer, choice)
+        answer when is_binary(answer) -> _evaluate_choice(answer, choice)
+        answer when is_list(answer) -> _evaluate_choice(IO.chardata_to_string(answer), choice)
       end
     end
 

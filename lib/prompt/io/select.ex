@@ -106,19 +106,29 @@ defmodule Prompt.IO.Select do
         {:error, reason} ->
           %Select{select | error: reason}
 
-        answer ->
+        answer when is_binary(answer) ->
           answer
           |> String.trim()
-          |> evaluate_choice_answer(select)
-          |> case do
-            %Select{error: err} = s when not is_nil(err) ->
-              s
-              |> show_select_error()
-              |> evaluate()
+          |> do_evaluate(select)
 
-            %Select{answer: answer} ->
-              answer
-          end
+        answer when is_list(answer) ->
+          answer
+          |> IO.chardata_to_string()
+          |> String.trim()
+          |> do_evaluate(select)
+      end
+    end
+
+    defp do_evaluate(answer, select) do
+      evaluate_choice_answer(answer, select)
+      |> case do
+        %Select{error: err} = s when not is_nil(err) ->
+          s
+          |> show_select_error()
+          |> evaluate()
+
+        %Select{answer: answer} ->
+          answer
       end
     end
 
