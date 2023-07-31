@@ -11,6 +11,8 @@ defmodule Prompt.Router do
 
   Exposes a main/1 function that is called with the command line args
 
+  ## Arguments
+
   ## Example
 
   ```elixir
@@ -62,6 +64,8 @@ defmodule Prompt.Router do
   ```
 
   """
+  alias Credo.Code.Name
+  alias LSP.Types.RenameFile.Options
 
   @doc """
   The function responsible for filtering and calling the correct command 
@@ -232,7 +236,11 @@ defmodule Prompt.Router do
         else
           # process the options for the module
           switches = build_parser_switches(command)
-          {parsed, leftover, _} = OptionParser.parse_head(rest, switches: switches)
+          aliases = build_parser_aliases(command)
+
+          {parsed, leftover, _} =
+            OptionParser.parse_head(rest, switches: switches, aliases: aliases)
+
           data = build_command_data(command, parsed, leftover)
           {command.module, data}
         end
@@ -272,7 +280,23 @@ defmodule Prompt.Router do
   end
 
   defp build_parser_switches(nil), do: []
-  defp build_parser_switches(command), do: Enum.map(command.arguments, &{&1.name, &1.type})
+
+  defp build_parser_switches(command) do
+    Enum.map(command.arguments, &{&1.name, &1.type})
+  end
+
+  defp build_parser_aliases(nil), do: []
+
+  defp build_parser_aliases(command) do
+    for args <- command.arguments, reduce: [] do
+      a ->
+        if Keyword.has_key?(args.options, :short) do
+          [{Keyword.get(args.options, :short), args.name} | a]
+        else
+          a
+        end
+    end
+  end
 
   defp build_command_data(command, parsed, leftover) do
     command.arguments
@@ -327,6 +351,21 @@ defmodule Prompt.Router do
     end
   end
 
+  @doc """
+  Defines the arguments of a command.
+  ## Argument Name
+  This indicates what the user will type as the option to the sub-command.
+  For example,
+  ```elixir
+  arg :print, :boolean
+  ```
+  would allow the user to type `$ your_command --print`
+
+  ## Options
+  Available options are:
+    * default - a default value if the user doesn't use this option
+    * short   - an optional short argument option i.e `short: :h` would all the user to type `-h`
+  """
   defmacro arg(arg_name, arg_type, opts \\ []) do
     quote do
       %{name: unquote(arg_name), type: unquote(arg_type), options: unquote(opts)}
