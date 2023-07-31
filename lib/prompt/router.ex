@@ -12,6 +12,7 @@ defmodule Prompt.Router do
   Exposes a main/1 function that is called with the command line args
 
   ## Arguments
+  See `arg/3`
 
   ## Example
 
@@ -21,7 +22,7 @@ defmodule Prompt.Router do
 
     command :checkout, My.CheckoutCommand do
       arg :help, :boolean
-      arg :branch, :string, default: "main"
+      arg :branch, :string, short: :b, default: "main"
     end
 
     command "", My.DefaultCommand do
@@ -64,8 +65,6 @@ defmodule Prompt.Router do
   ```
 
   """
-  alias Credo.Code.Name
-  alias LSP.Types.RenameFile.Options
 
   @doc """
   The function responsible for filtering and calling the correct command 
