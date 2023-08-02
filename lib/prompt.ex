@@ -371,7 +371,9 @@ defmodule Prompt do
                      doc: "Use the first element as the header for the table."
                    ],
                    border: [
-                     type: {:in, [:normal, :markdown]}
+                     type: {:in, [:normal, :markdown, :none]},
+                     default: :normal,
+                     doc: "Determine how the border is displayed"
                    ]
                  )
 
@@ -381,8 +383,6 @@ defmodule Prompt do
 
   Supported options:
   #{NimbleOptions.docs(@table_options)}
-
-  * border: :normal (default) | :markdown   --- determine how the border is displayed
 
   ## Examples
 
@@ -403,13 +403,19 @@ defmodule Prompt do
        | this  | is   | another | row      |
        +-------+------+---------+----------+
       "
-      
+
       iex> Prompt.table([["One", "Two", "Three", "Four"], ["Hello", "from", "the", "terminal!"],["this", "is", "another", "row"]], header: true, border: :markdown)
       "
        | One   | Two  | Three   | Four     |
        |-------|------|---------|----------|
        | Hello | from | the     | terminal |
        | this  | is   | another | row      |
+      "
+
+      iex> Prompt.table([["Hello", "from", "the", "terminal!"],["this", "is", "another", "row"]], border: :none)
+      "
+       Hello from the     terminal 
+       this  is   another row      
       "
 
   """
@@ -432,7 +438,7 @@ defmodule Prompt do
   other mediums like markdown files.
   """
   @spec table_data(list(list()), keyword()) :: [<<>> | [any()], ...]
-  def table_data(matrix, opts \\ []) when is_list(matrix) do
+  def table_data(matrix, opts \\ [border: :normal]) when is_list(matrix) do
     matrix
     |> build_table(opts)
   end
@@ -442,7 +448,7 @@ defmodule Prompt do
     row_delimiter = Prompt.Table.row_delimiter(tbl)
 
     first =
-      if Keyword.get(opts, :border) != :markdown do
+      if Keyword.get(opts, :border) == :normal do
         row_delimiter
       else
         ""
@@ -463,7 +469,7 @@ defmodule Prompt do
       end
 
     last =
-      if Keyword.get(opts, :border) != :markdown do
+      if Keyword.get(opts, :border) == :normal do
         row_delimiter
       else
         ""
