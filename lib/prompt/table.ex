@@ -37,7 +37,10 @@ defmodule Prompt.Table do
     row_str =
       for {column, idx} <- Enum.with_index(row) do
         column_string = column_str(column, Map.get(table.columns_length, idx))
-        if Keyword.get(table.opts, :border) == :none, do: " #{column_string} ", else: "| #{column_string} "
+
+        if Keyword.get(table.opts, :border) == :none,
+          do: " #{column_string} ",
+          else: "| #{column_string} "
       end
 
     if Keyword.get(table.opts, :border) == :none do

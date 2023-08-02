@@ -373,7 +373,13 @@ defmodule Prompt do
                    border: [
                      type: {:in, [:normal, :markdown, :none]},
                      default: :normal,
-                     doc: "Determine how the border is displayed"
+                     doc:
+                       "Determine how the border is displayed, one of :normal (default), :markdown, or :none"
+                   ],
+                   color: [
+                     type: {:in, @colors},
+                     doc:
+                       "The text color. One of `#{Kernel.inspect(@colors)}`. Defaults to the terminal default."
                    ]
                  )
 
@@ -423,8 +429,17 @@ defmodule Prompt do
   def table(matrix, opts \\ []) when is_list(matrix) do
     case NimbleOptions.validate(opts, @table_options) do
       {:ok, options} ->
-        matrix
-        |> build_table(options)
+        table = matrix |> build_table(options)
+        color = Keyword.get(options, :color, IO.ANSI.default_color())
+
+        [
+          :reset,
+          IO.ANSI.default_background(),
+          color,
+          table,
+          :reset
+        ]
+        |> IO.ANSI.format()
         |> write()
 
       {:error, err} ->
@@ -475,7 +490,11 @@ defmodule Prompt do
         ""
       end
 
-    [first, next, rest, last]
+    if Keyword.get(opts, :color) do
+      [first, next, rest, last]
+    else
+      [first, next, rest, last]
+    end
   end
 
   defp run(opts, validation, io) do
