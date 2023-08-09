@@ -60,7 +60,7 @@ defmodule Prompt.Table do
         :none -> ""
       end
 
-    if delimiter == :none do
+    if delimiter == "" do
       "\n"
     else
       row =
