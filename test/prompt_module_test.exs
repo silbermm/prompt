@@ -30,11 +30,11 @@ defmodule Example do
   use Prompt.Router, otp_app: :prompt
 
   command :test, ExampleCommand do
-    arg :help, :boolean
+    arg(:help, :boolean)
   end
 
   command "", FallbackCommand do
-    arg :help, :boolean
+    arg(:help, :boolean)
   end
 
   @impl true
@@ -64,7 +64,6 @@ defmodule PromptModuleTest do
              Example.main(["whatever"])
            end) =~ "Unrecognized option - whatever"
   end
-
 
   test "fallback" do
     assert capture_io(fn ->

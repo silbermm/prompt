@@ -37,10 +37,17 @@ defmodule Prompt.Table do
     row_str =
       for {column, idx} <- Enum.with_index(row) do
         column_string = column_str(column, Map.get(table.columns_length, idx))
-        "| #{column_string} "
+
+        if Keyword.get(table.opts, :border) == :none,
+          do: " #{column_string} ",
+          else: "| #{column_string} "
       end
 
-    "#{row_str}|\n"
+    if Keyword.get(table.opts, :border) == :none do
+      "#{row_str}\n"
+    else
+      "#{row_str}|\n"
+    end
   end
 
   @doc "Generate the row delimiter"
@@ -49,18 +56,23 @@ defmodule Prompt.Table do
     delimiter =
       case Keyword.get(table.opts, :border, :normal) do
         :markdown -> "|"
-        _ -> "+"
+        :normal -> "+"
+        :none -> ""
       end
 
-    row =
-      for column_number <- 0..(table.column_count - 1) do
-        # should get us the length of the largest cell in this column
-        length = Map.get(table.columns_length, column_number)
-        r = row_str(length)
-        "#{delimiter}-#{r}-"
-      end
+    if delimiter == "" do
+      "\n"
+    else
+      row =
+        for column_number <- 0..(table.column_count - 1) do
+          # should get us the length of the largest cell in this column
+          length = Map.get(table.columns_length, column_number)
+          r = row_str(length)
+          "#{delimiter}-#{r}-"
+        end
 
-    [row, delimiter, "\n"]
+      [row, delimiter, "\n"]
+    end
   end
 
   defp row_str(total_length), do: Enum.map(1..total_length, fn _ -> "-" end)

@@ -371,7 +371,15 @@ defmodule Prompt do
                      doc: "Use the first element as the header for the table."
                    ],
                    border: [
-                     type: {:in, [:normal, :markdown]}
+                     type: {:in, [:normal, :markdown, :none]},
+                     default: :normal,
+                     doc:
+                       "Determine how the border is displayed, one of :normal (default), :markdown, or :none"
+                   ],
+                   color: [
+                     type: {:in, @colors},
+                     doc:
+                       "The text color. One of `#{Kernel.inspect(@colors)}`. Defaults to the terminal default."
                    ]
                  )
 
@@ -381,8 +389,6 @@ defmodule Prompt do
 
   Supported options:
   #{NimbleOptions.docs(@table_options)}
-
-  * border: :normal (default) | :markdown   --- determine how the border is displayed
 
   ## Examples
 
@@ -403,7 +409,7 @@ defmodule Prompt do
        | this  | is   | another | row      |
        +-------+------+---------+----------+
       "
-      
+
       iex> Prompt.table([["One", "Two", "Three", "Four"], ["Hello", "from", "the", "terminal!"],["this", "is", "another", "row"]], header: true, border: :markdown)
       "
        | One   | Two  | Three   | Four     |
@@ -412,13 +418,28 @@ defmodule Prompt do
        | this  | is   | another | row      |
       "
 
+      iex> Prompt.table([["Hello", "from", "the", "terminal!"],["this", "is", "another", "row"]], border: :none)
+      "
+       Hello from the     terminal 
+       this  is   another row      
+      "
+
   """
   @spec table(list(list()), keyword()) :: :ok
   def table(matrix, opts \\ []) when is_list(matrix) do
     case NimbleOptions.validate(opts, @table_options) do
       {:ok, options} ->
-        matrix
-        |> build_table(options)
+        table = matrix |> build_table(options)
+        color = Keyword.get(options, :color, IO.ANSI.default_color())
+
+        [
+          :reset,
+          IO.ANSI.default_background(),
+          color,
+          table,
+          :reset
+        ]
+        |> IO.ANSI.format()
         |> write()
 
       {:error, err} ->
@@ -432,7 +453,7 @@ defmodule Prompt do
   other mediums like markdown files.
   """
   @spec table_data(list(list()), keyword()) :: [<<>> | [any()], ...]
-  def table_data(matrix, opts \\ []) when is_list(matrix) do
+  def table_data(matrix, opts \\ [border: :normal]) when is_list(matrix) do
     matrix
     |> build_table(opts)
   end
@@ -442,7 +463,7 @@ defmodule Prompt do
     row_delimiter = Prompt.Table.row_delimiter(tbl)
 
     first =
-      if Keyword.get(opts, :border) != :markdown do
+      if Keyword.get(opts, :border) == :normal do
         row_delimiter
       else
         ""
@@ -463,13 +484,17 @@ defmodule Prompt do
       end
 
     last =
-      if Keyword.get(opts, :border) != :markdown do
+      if Keyword.get(opts, :border) == :normal do
         row_delimiter
       else
         ""
       end
 
-    [first, next, rest, last]
+    if Keyword.get(opts, :color) do
+      [first, next, rest, last]
+    else
+      [first, next, rest, last]
+    end
   end
 
   defp run(opts, validation, io) do
