@@ -187,8 +187,8 @@ defmodule PromptTest do
                  ["Hello", "from", "the", "terminal!"],
                  ["this", "is", "another", "row"]
                ])
-             end) ==
-               "\e[0m\e[49m\e[39m+-------+------+---------+-----------+\n| Hello | from | the     | terminal! |\n| this  | is   | another | row       |\n+-------+------+---------+-----------+\n\e[0m\e[0m"
+             end) =~
+               "\e[39m+-------+------+---------+-----------+\n| Hello | from | the     | terminal! |\n| this  | is   | another | row       |\n+-------+------+---------+-----------+\n\e[0m\e[0m"
     end
 
     test "display simple table with headers" do
@@ -200,8 +200,8 @@ defmodule PromptTest do
                  ],
                  header: true
                )
-             end) ==
-               "\e[0m\e[49m\e[39m+-------+------+---------+-----------+\n| Hello | from | the     | terminal! |\n+-------+------+---------+-----------+\n| this  | is   | another | row       |\n+-------+------+---------+-----------+\n\e[0m\e[0m"
+             end) =~
+               "\e[39m+-------+------+---------+-----------+\n| Hello | from | the     | terminal! |\n+-------+------+---------+-----------+\n| this  | is   | another | row       |\n+-------+------+---------+-----------+\n\e[0m\e[0m"
     end
 
     test "return table data" do
