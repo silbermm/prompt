@@ -52,6 +52,14 @@ defmodule Prompt do
   For a complete example see [Slim](https://github.com/silbermm/slim_pickens)
 
   Run `MIX_ENV=prod mix release` to build the binary. This will output the usual release messages for a `mix release` command, but in the case of a CLI, it's a bit of a red herring. The binary you want to run as a CLI will be in `_build/prod/rel/bakeware/<your_app>`.
+
+
+  ### Burrito
+  [Burrito](https://github.com/burrito-elixir/burrito) is another option for building a single binary artifact. It is unique because you can build binaries for windows, mac and linux all from one machine.
+
+  For a complete example see [Genex](https://github.com/silbermm/genex)
+
+  Run `MIX_ENV=prod mix release` to build the binary. This will output the usual release messages for a `mix release` command, but in the case of a CLI, it's a bit of a red herring. The binary you want to run as a CLI will be in `burrito_out/<your_app>`.
   """
 
   import IO
