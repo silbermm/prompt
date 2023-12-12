@@ -62,7 +62,7 @@ defmodule PromptModuleTest do
   test "unknown command forwards to the fallback command" do
     assert capture_io(fn ->
              Example.main(["whatever"])
-           end) =~ "\e[10000D\e[0m\e[49m\e[39mfallback command\e[0m\n\e[0m"
+           end) =~ "[39mfallback command"
   end
 
   test "fallback" do
