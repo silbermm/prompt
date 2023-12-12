@@ -3,6 +3,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## [0.10.0]
+### Updated
+  - Forward all params to fallback command instead of failing when unable to match a command.
+
 ## [0.9.4]
 ### Updated
   - Documentation for building binary releases
