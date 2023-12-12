@@ -230,8 +230,9 @@ defmodule Prompt.Router do
         command = find_in_defined_commands(defined_commands, head)
 
         if command == nil do
-          # the passed in command or option is not recognized
-          {:help, "Unrecognized option - #{head}"}
+          # the passed in command or option is not recognized, try the fallback
+          # passing the data as options
+          fallback_command(original, defined_commands)
         else
           # process the options for the module
           switches = build_parser_switches(command)
