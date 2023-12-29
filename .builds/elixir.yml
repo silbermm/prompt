@@ -1,0 +1,47 @@
+image: ubuntu/lts
+packages:
+  - build-essential
+  - zip
+  - autoconf
+  - m4
+  - libncurses5-dev
+  - libwxgtk3.0-gtk3-dev
+  - libwxgtk-webview3.0-gtk3-dev
+  - libgl1-mesa-dev
+  - libglu1-mesa-dev
+  - libpng-dev
+  - libssh-dev
+  - unixodbc-dev
+  - xsltproc
+  - fop
+  - libxml2-utils
+  - libncurses-dev
+  - pkg-config
+tasks:
+  - install_asdf: |
+      git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.13.1
+      source "$HOME/.asdf/asdf.sh"
+      sudo update-locale en_US.UTF-8
+  - install_elixir: |
+      cd prompt
+      export KERL_CONFIGURE_OPTIONS="--disable-debug --without-javac"
+      source "$HOME/.asdf/asdf.sh"
+      asdf plugin add erlang https://github.com/asdf-vm/asdf-erlang.git
+      asdf plugin-add elixir https://github.com/asdf-vm/asdf-elixir.git
+      asdf install
+  - compile_project: |
+      cd prompt
+      source "$HOME/.asdf/asdf.sh"
+      mix local.hex --force
+      mix local.rebar --force
+      mix deps.get 
+      mix compile --warnings-as-errors 
+  - run_analyzer: |
+      cd prompt
+      source "$HOME/.asdf/asdf.sh"
+      mix dialyzer --plt
+      mix dialyzer --halt-exit-status --format github
+  - run_tests: |
+      cd prompt
+      source "$HOME/.asdf/asdf.sh"
+      MIX_ENV=test mix test --exclude integration
