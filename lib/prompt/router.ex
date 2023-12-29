@@ -104,6 +104,19 @@ defmodule Prompt.Router do
   """
   @callback handle_exit_value(any()) :: no_return()
 
+  @doc """
+  Called when the flag `--completions string` is passed on the command-line.
+
+  The default behaviour for this is to write the completion script to the
+  screen.
+
+  zsh is supported out of the box. If other completion scripts are required,
+  this callback will need to be implemented.
+
+  Overrideable
+  """
+  @callback generate_completions(binary()) :: non_neg_integer()
+
   defmacro __using__(opts) do
     app = Keyword.get(opts, :otp_app, nil)
 
@@ -139,6 +152,9 @@ defmodule Prompt.Router do
 
           :version ->
             handle_exit_value(version())
+
+          {:completion, shell} ->
+            generate_completions(shell)
 
           {mod, data} ->
             transformed = apply(mod, :init, [data])
@@ -201,10 +217,81 @@ defmodule Prompt.Router do
         handle_exit_value(2)
       end
 
+      def generate_completions("zsh") do
+        commands =
+          __MODULE__.module_info()
+          |> Keyword.get(:attributes, [])
+          |> Keyword.get_values(:commands)
+          |> List.flatten()
+
+        args =
+          for command <- commands, into: "" do
+            "#{command.command_name}\u005c:'' "
+          end
+
+        line = "\"1: :((#{args}))\" \\"
+
+        cases =
+          for command <- commands, command.command_name != "", into: "" do
+            ~s"""
+            \t#{command.command_name})
+            \t\t_#{@app}_#{command.command_name}
+            \t;;
+            """
+          end
+
+        funcs =
+          for command <- commands, command.command_name != "", into: "" do
+            ~s"""
+            function _#{@app}_#{command.command_name} {
+            \t_arguments \\
+            \t\t#{for arg <- command.arguments, into: "" do
+              "\"--#{arg.name}[]\" "
+            end} 
+            }
+
+            """
+          end
+
+        base = """
+        #compdef #{@app}
+        local line
+
+        _arguments -C \\
+        \t"--help[Show help information]" \\
+        \t"--version[Show version information]" \\
+        \t"--completion[Generate completion script]:shell_name:->shell_names" \\
+        \t#{line} 
+        \t"*::arg:->args"
+
+        case "$state" in
+        \tshell_names)
+        \t\t_values 'shell_names' zsh bash fish
+        \t;;
+        esac
+
+        case $line[1] in
+          #{cases} 
+        esac
+
+        #{funcs}
+        """
+
+        display(base)
+        0
+      end
+
+      @impl true
+      def generate_completions(shell) do
+        display("Completions for #{shell} are not supported", color: :yellow)
+        1
+      end
+
       defoverridable help: 0
       defoverridable help: 1
       defoverridable version: 0
       defoverridable handle_exit_value: 1
+      defoverridable generate_completions: 1
     end
   end
 
@@ -213,7 +300,7 @@ defmodule Prompt.Router do
     # first figure out which command was passed in
     argv
     |> OptionParser.parse_head(
-      switches: [help: :boolean, version: :boolean],
+      switches: [help: :boolean, version: :boolean, completion: :string],
       aliases: [h: :help, v: :version]
     )
     |> parse_opts(commands, argv)
@@ -222,6 +309,7 @@ defmodule Prompt.Router do
   # if help or version were passed, process them and exit
   defp parse_opts({[help: true], _, _}, _, _), do: :help
   defp parse_opts({[version: true], _, _}, _, _), do: :version
+  defp parse_opts({[completion: shell], _, _}, _, _), do: {:completion, shell}
 
   defp parse_opts({_, additional, _}, defined_commands, original) do
     case additional do
