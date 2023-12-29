@@ -28,7 +28,7 @@ defmodule Prompt.MixProject do
     [
       {:credo, "~> 1.5", only: [:dev, :test], runtime: false},
       {:ex_doc, ">= 0.28.4", only: :dev, runtime: false},
-      {:dialyxir, "~> 1.1", only: [:dev], runtime: false},
+      {:dialyxir, "~> 1.4", only: [:dev], runtime: false},
       {:nimble_options, "~> 0.3.0"}
     ]
   end
