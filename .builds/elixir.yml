@@ -17,6 +17,8 @@ packages:
   - libxml2-utils
   - libncurses-dev
   - pkg-config
+secrets:
+  - c64e1b01-5b12-45e5-8d33-adb4383c607e
 tasks:
   - install_asdf: |
       git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.13.1
@@ -46,13 +48,14 @@ tasks:
       source "$HOME/.asdf/asdf.sh"
       MIX_ENV=test mix test --exclude integration
   - release: |
-      echo $GIT_REF
-      set +x
-      set -a
-      set +a
-      set -x
       if [[ "$GIT_REF" == refs/tags/* ]]; then
-        echo "Release"
         set +x
+        set -a
+        source ~/.hextokenenv
+        set +a
         set -x
+        cd prompt
+        source "$HOME/.asdf/asdf.sh"
+        mix deps.get
+        mix hex.publish --yes
       fi
