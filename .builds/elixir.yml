@@ -49,10 +49,10 @@ tasks:
       echo $GIT_REF
       set +x
       set -a
-      source ~/.flytoken
       set +a
       set -x
-      if [ "$GIT_REF" == "refs/heads/main" ]; then
+      if [[ "$GIT_REF" == refs/tags/* ]]; then
+        echo "Release"
         set +x
         set -x
       fi
