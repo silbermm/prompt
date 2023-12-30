@@ -45,3 +45,14 @@ tasks:
       cd prompt
       source "$HOME/.asdf/asdf.sh"
       MIX_ENV=test mix test --exclude integration
+  - release: |
+      echo $GIT_REF
+      set +x
+      set -a
+      source ~/.flytoken
+      set +a
+      set -x
+      if [ "$GIT_REF" == "refs/heads/main" ]; then
+        set +x
+        set -x
+      fi
