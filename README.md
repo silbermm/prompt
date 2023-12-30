@@ -1,6 +1,6 @@
 ![prompt_with_text_lighter](https://user-images.githubusercontent.com/42816/115971052-5772c380-a514-11eb-8b43-dd49e81467f5.png)
 
-![](https://github.com/silbermm/prompt/workflows/Build/badge.svg)
+[![builds.sr.ht status](https://builds.sr.ht/~ahappydeath/prompt/commits/main/elixir.yml.svg)](https://builds.sr.ht/~ahappydeath/prompt/commits/main/elixir.yml?)
 [![Hex.pm](https://img.shields.io/hexpm/v/prompt?style=flat-square)](https://hexdocs.pm/prompt/Prompt.html#content)
 
 # Terminal UI Library for Elixir
@@ -33,7 +33,7 @@ Add `prompt` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:prompt, "~> 0.8.0"}
+    {:prompt, "~> 0.10.0"}
   ]
 end
 ```

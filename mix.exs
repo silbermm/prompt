@@ -8,7 +8,7 @@ defmodule Prompt.MixProject do
       version: "0.10.1-rc0",
       elixir: "~> 1.10",
       package: package(),
-      source_url: "https://github.com/silbermm/prompt",
+      source_url: "https://git.sr.ht/~ahappydeath/prompt",
       dialyzer: [
         flags: ["-Wunmatched_returns", :error_handling, :underspecs]
       ],
@@ -38,7 +38,7 @@ defmodule Prompt.MixProject do
       licenses: ["GPL-3.0-or-later"],
       files: ["lib", "mix.exs", "README.md", "CHANGELOG.md", "COPYING*"],
       maintainers: ["Matt Silbernagel"],
-      links: %{:GitHub => "https://github.com/silbermm/prompt"}
+      links: %{:SourceHut => "https://git.sr.ht/~ahappydeath/prompt"}
     ]
   end
 

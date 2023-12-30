@@ -18,7 +18,7 @@ packages:
   - libncurses-dev
   - pkg-config
 secrets:
-  - c64e1b01-5b12-45e5-8d33-adb4383c607e
+  - 79a531a9-22f0-4df5-babd-62d8fc634fd6 
 tasks:
   - install_asdf: |
       git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.13.1
