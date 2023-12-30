@@ -3,8 +3,12 @@
 [![builds.sr.ht status](https://builds.sr.ht/~ahappydeath/prompt/commits/main/elixir.yml.svg)](https://builds.sr.ht/~ahappydeath/prompt/commits/main/elixir.yml?)
 [![Hex.pm](https://img.shields.io/hexpm/v/prompt?style=flat-square)](https://hexdocs.pm/prompt/Prompt.html#content)
 
-# Terminal UI Library for Elixir
+# Contributing
+Use the [issue tracker](https://todo.sr.ht/~ahappydeath/prompt-discuss) to report issues or feature requests.
 
+Send patches to [~ahappydeath/prompt@lists.sr.ht](mailto:~ahappydeath/prompt@lists.sr.ht)
+
+# Terminal UI Library for Elixir
 * [Motivation](#motivation)
 * [Installation](#installation)
 * [Basic Usage](#basic-usage)
@@ -18,9 +22,7 @@
 * [Advanced Usage](#advanced-usage-with-subcommands)
 * [Example Application](#example)
 
-
 [![Run in Livebook](https://livebook.dev/badge/v1/black.svg)](https://livebook.dev/run?url=https%3A%2F%2Fgithub.com%2Fsilbermm%2Fprompt%2Fblob%2Fmain%2Fexample.livemd)
-
 
 ## Motivation
 
@@ -131,4 +133,4 @@ Will display
 To use the more advanced features, see the [official documentation](https://hexdocs.pm/prompt/Prompt.html#module-subcommands)
 
 ## Example
-For a complete example, take a look at [Slim - a cherry-picking tool](https://github.com/silbermm/slim_pickens)
+For a complete example, take a look at [Slim - a cherry-picking tool](https://git.sr.ht/~ahappydeath/genex)
