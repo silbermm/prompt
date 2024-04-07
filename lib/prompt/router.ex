@@ -113,6 +113,8 @@ defmodule Prompt.Router do
   zsh is supported out of the box. If other completion scripts are required,
   this callback will need to be implemented.
 
+  see https://github.com/zsh-users/zsh-completions/blob/master/zsh-completions-howto.org
+
   Overrideable
   """
   @callback generate_completions(binary()) :: non_neg_integer()
