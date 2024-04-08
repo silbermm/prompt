@@ -49,7 +49,7 @@ defmodule Prompt do
 
   For Bakeware, I also set `export RELEASE_DISTRIBUTION=none` in `rel/env.sh.eex` and `rel/env.bat.eex` - unless you need erlang distribution in your CLI.
 
-  For a complete example see [Slim](https://github.com/silbermm/slim_pickens)
+  For a complete example see [Genex](https://git.sr.ht/~ahappydeath/genex)
 
   Run `MIX_ENV=prod mix release` to build the binary. This will output the usual release messages for a `mix release` command, but in the case of a CLI, it's a bit of a red herring. The binary you want to run as a CLI will be in `_build/prod/rel/bakeware/<your_app>`.
 

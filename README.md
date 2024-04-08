@@ -133,4 +133,4 @@ Will display
 To use the more advanced features, see the [official documentation](https://hexdocs.pm/prompt/Prompt.html#module-subcommands)
 
 ## Example
-For a complete example, take a look at [Slim - a cherry-picking tool](https://git.sr.ht/~ahappydeath/genex)
+For a complete example, take a look at [Genex - a password manager](https://git.sr.ht/~ahappydeath/genex)

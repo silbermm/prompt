@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## 0.10.1-rc0
 ### Added
-  - Generated command `--complete` that sill build a simple zsh completion script
+  - Generated command `--complete` that will build a simple zsh completion script
 
 ## [0.10.0]
 ### Updated
