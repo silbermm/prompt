@@ -1,4 +1,5 @@
-image: ubuntu/lts
+arch: amd64
+image: ubuntu/24.04
 packages:
   - build-essential
   - zip

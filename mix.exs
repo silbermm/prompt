@@ -5,8 +5,8 @@ defmodule Prompt.MixProject do
     [
       app: :prompt,
       description: "A terminal toolkit and a set of helpers for building console applications.",
-      version: "0.10.1-rc0",
-      elixir: "~> 1.10",
+      version: "0.10.1-rc1",
+      elixir: "~> 1.12",
       package: package(),
       source_url: "https://git.sr.ht/~ahappydeath/prompt",
       dialyzer: [
@@ -26,10 +26,10 @@ defmodule Prompt.MixProject do
 
   defp deps do
     [
-      {:credo, "~> 1.5", only: [:dev, :test], runtime: false},
-      {:ex_doc, ">= 0.28.4", only: :dev, runtime: false},
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
+      {:ex_doc, ">= 0.34.2", only: :dev, runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev], runtime: false},
-      {:nimble_options, "~> 0.3.0"}
+      {:nimble_options, "~> 1.1.1"}
     ]
   end
 
