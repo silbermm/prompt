@@ -1,0 +1,12 @@
+when:
+  - evaluate: 'not (CI_COMMIT_MESSAGE contains "SKIPCI")'
+
+steps:
+  - name: run_dialyzer
+    image: ahappydeath/prompt-base:latest
+    commands:
+      - mix deps.get
+      - mix compile --warnings-as-errors
+      - mix dialyzer
+    when:
+      - event: pull_request
