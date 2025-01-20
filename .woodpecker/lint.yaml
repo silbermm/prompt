@@ -3,7 +3,7 @@ when:
 
 steps:
   - name: compile
-    image: ahappydeath/prompt-base:latest
+    image: codeberg.org/ahappydeath/prompt-base:latest
     commands:
       - mix deps.get
       - mix compile --warnings-as-errors 
@@ -11,14 +11,14 @@ steps:
       - event: pull_request
 
   - name: check_formatted
-    image: ahappydeath/prompt-base:latest
+    image: codeberg.org/ahappydeath/prompt-base:latest
     commands:
       - mix format --check-formatted
     when:
       - event: pull_request
  
   - name: graph_dependencies
-    image: ahappydeath/prompt-base:latest
+    image: codeberg.org/ahappydeath/prompt-base:latest
     commands:
       - mix graph --fail-above 1
     when:
