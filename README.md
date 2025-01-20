@@ -1,7 +1,10 @@
 ![prompt_with_text_lighter](https://user-images.githubusercontent.com/42816/115971052-5772c380-a514-11eb-8b43-dd49e81467f5.png)
 
-[![builds.sr.ht status](https://builds.sr.ht/~ahappydeath/prompt/commits/main/elixir.yml.svg)](https://builds.sr.ht/~ahappydeath/prompt/commits/main/elixir.yml?)
 [![Hex.pm](https://img.shields.io/hexpm/v/prompt?style=flat-square)](https://hexdocs.pm/prompt/Prompt.html#content)
+
+# NEW HOME
+This repo has been moved to [Codeberg](https://codeberg.org/ahappydeath/prompt)
+
 
 # Terminal UI Library for Elixir
 * [Motivation](#motivation)
