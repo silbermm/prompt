@@ -3,11 +3,6 @@
 [![builds.sr.ht status](https://builds.sr.ht/~ahappydeath/prompt/commits/main/elixir.yml.svg)](https://builds.sr.ht/~ahappydeath/prompt/commits/main/elixir.yml?)
 [![Hex.pm](https://img.shields.io/hexpm/v/prompt?style=flat-square)](https://hexdocs.pm/prompt/Prompt.html#content)
 
-# Contributing
-Use the [issue tracker](https://todo.sr.ht/~ahappydeath/prompt-discuss) to report issues or feature requests.
-
-Send patches to [~ahappydeath/prompt@lists.sr.ht](mailto:~ahappydeath/prompt@lists.sr.ht)
-
 # Terminal UI Library for Elixir
 * [Motivation](#motivation)
 * [Installation](#installation)
