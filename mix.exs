@@ -69,7 +69,7 @@ defmodule Prompt.MixProject do
 
   defp aliases do
     [
-      graph: "xref graph --label compile-connected",
+      graph: "xref graph --label compile-connected"
     ]
   end
 end

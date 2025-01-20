@@ -1,5 +1,6 @@
 when:
   - evaluate: 'not (CI_COMMIT_MESSAGE contains "SKIPCI")'
+  - event: pull_request
 
 steps:
   - name: compile
