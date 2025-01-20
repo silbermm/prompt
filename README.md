@@ -2,10 +2,6 @@
 
 [![Hex.pm](https://img.shields.io/hexpm/v/prompt?style=flat-square)](https://hexdocs.pm/prompt/Prompt.html#content)
 
-# NEW HOME
-This repo has been moved to [Codeberg](https://codeberg.org/ahappydeath/prompt)
-
-
 # Terminal UI Library for Elixir
 * [Motivation](#motivation)
 * [Installation](#installation)
