@@ -8,6 +8,7 @@ defmodule Prompt.MixProject do
       version: "0.10.1-rc1",
       elixir: "~> 1.12",
       package: package(),
+      aliases: aliases(),
       source_url: "https://git.sr.ht/~ahappydeath/prompt",
       dialyzer: [
         flags: ["-Wunmatched_returns", :error_handling, :underspecs]
@@ -63,6 +64,12 @@ defmodule Prompt.MixProject do
         Prompt.Command,
         Prompt.Position
       ]
+    ]
+  end
+
+  defp aliases do
+    [
+      graph: "xref graph --label compile-connected"
     ]
   end
 end

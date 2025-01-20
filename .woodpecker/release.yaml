@@ -1,0 +1,11 @@
+steps:
+  - name: build and push image
+    image: codeberg.org/ahappydeath/prompt-base:latest 
+    commands:
+      - mix deps.get
+      - mix hex.publish --yes 
+    environment:
+      HEX_API_KEY:
+        from_secret: hex_api_key
+    when:
+      - event: release
