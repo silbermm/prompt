@@ -5,11 +5,11 @@ defmodule Prompt.MixProject do
     [
       app: :prompt,
       description: "A terminal toolkit and a set of helpers for building console applications.",
-      version: "0.10.1-rc2",
+      version: "0.10.1-rc3",
       elixir: "~> 1.12",
       package: package(),
       aliases: aliases(),
-      source_url: "https://git.sr.ht/~ahappydeath/prompt",
+      source_url: "https://codeberg.org/ahappydeath/prompt",
       dialyzer: [
         flags: ["-Wunmatched_returns", :error_handling, :underspecs]
       ],
@@ -55,7 +55,7 @@ defmodule Prompt.MixProject do
       ],
       logo: "assets/prompt.png",
       authors: ["Matt Silbernagel"],
-      groups_for_functions: [
+      groups_for_docs: [
         "Input Functions": &(&1[:section] == :input),
         "Output Functions": &(&1[:section] == :output)
       ],
