@@ -5,7 +5,7 @@ defmodule Prompt.MixProject do
     [
       app: :prompt,
       description: "A terminal toolkit and a set of helpers for building console applications.",
-      version: "0.10.1-rc3",
+      version: "0.10.1",
       elixir: "~> 1.12",
       package: package(),
       aliases: aliases(),
@@ -39,7 +39,7 @@ defmodule Prompt.MixProject do
       licenses: ["GPL-3.0-or-later"],
       files: ["lib", "mix.exs", "README.md", "CHANGELOG.md", "COPYING*"],
       maintainers: ["Matt Silbernagel"],
-      links: %{:SourceHut => "https://git.sr.ht/~ahappydeath/prompt"}
+      links: %{:Codeberg => "https://codeberg.org/ahappydeath/prompt"}
     ]
   end
 
