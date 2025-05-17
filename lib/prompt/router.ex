@@ -122,6 +122,7 @@ defmodule Prompt.Router do
   defmacro __using__(opts) do
     app = Keyword.get(opts, :otp_app, nil)
 
+    # credo:disable-for-next-line Credo.Check.Refactor.LongQuoteBlocks
     quote location: :keep do
       require unquote(__MODULE__)
       import unquote(__MODULE__)
@@ -159,14 +160,14 @@ defmodule Prompt.Router do
             generate_completions(shell)
 
           {mod, data} ->
-            transformed = apply(mod, :init, [data])
-            result = apply(mod, :process, [transformed])
+            transformed = mod.init(data)
+            result = mod.process(transformed)
             handle_exit_value(result)
         end
       end
 
       @impl true
-      def help() do
+      def help do
         help =
           case Code.fetch_docs(__MODULE__) do
             {:docs_v1, _, :elixir, _, :none, _, _} -> "Help not available"
@@ -195,7 +196,7 @@ defmodule Prompt.Router do
       end
 
       @impl true
-      def version() do
+      def version do
         {:ok, vsn} = :application.get_key(@app, :vsn)
         display(List.to_string(vsn))
         0

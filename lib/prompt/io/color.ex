@@ -20,7 +20,7 @@ defmodule Prompt.IO.Color do
           | :white
           | :yellow
 
-  def all() do
+  def all do
     [
       :black,
       :blue,

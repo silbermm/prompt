@@ -79,7 +79,7 @@ defmodule Prompt.Command do
 
       @doc false
       @impl Prompt.Command
-      def help() do
+      def help do
         help =
           case Code.fetch_docs(__MODULE__) do
             {:docs_v1, _, :elixir, _, :none, _, _} -> "Help not available"

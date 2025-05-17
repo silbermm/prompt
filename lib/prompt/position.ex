@@ -33,8 +33,8 @@ defmodule Prompt.Position do
     |> write
   end
 
-  @spec _clear_up() :: String.t()
-  defp _clear_up(), do: ANSI.cursor_up() <> ANSI.clear_line()
+  @spec _clear_up :: String.t()
+  defp _clear_up, do: ANSI.cursor_up() <> ANSI.clear_line()
 
   defp build_clear_lines_string(_, str), do: str <> _clear_up()
 

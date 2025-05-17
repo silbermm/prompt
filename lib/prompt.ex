@@ -72,6 +72,13 @@ defmodule Prompt do
       iex> commands = [help: CLI.Commands.Help, version: CLI.Commands.Version]
 
   """
+  alias Prompt.IO.Choice
+  alias Prompt.IO.Confirm
+  alias Prompt.IO.Display
+  alias Prompt.IO.Password
+  alias Prompt.IO.Select
+  alias Prompt.IO.Text
+
   @type command_list() :: keyword(Prompt.Command)
 
   @typedoc """
@@ -127,7 +134,7 @@ defmodule Prompt do
   @spec confirm(String.t(), keyword()) :: :yes | :no | :error
   def confirm(question, opts \\ []) do
     run(opts, @confirm_options, fn options ->
-      Prompt.IO.Confirm.new(question, options)
+      Confirm.new(question, options)
     end)
   end
 
@@ -173,7 +180,7 @@ defmodule Prompt do
   @spec choice(String.t(), keyword(), keyword()) :: :error | atom()
   def choice(question, custom, opts \\ []) do
     run(opts, @choice_options, fn options ->
-      Prompt.IO.Choice.new(question, custom, options)
+      Choice.new(question, custom, options)
     end)
   end
 
@@ -217,7 +224,7 @@ defmodule Prompt do
   @spec text(String.t(), keyword()) :: String.t() | :error | :error_min | :error_max
   def text(display, opts \\ []) do
     run(opts, @text_options, fn options ->
-      Prompt.IO.Text.new(display, options)
+      Text.new(display, options)
     end)
   end
 
@@ -275,7 +282,7 @@ defmodule Prompt do
           any() | :error
   def select(display, choices, opts \\ []) do
     run(opts, @select_options, fn options ->
-      Prompt.IO.Select.new(display, choices, options)
+      Select.new(display, choices, options)
     end)
   end
 
@@ -308,7 +315,7 @@ defmodule Prompt do
   @spec password(String.t(), keyword()) :: String.t()
   def password(display, opts \\ []) do
     run(opts, @password_options, fn options ->
-      Prompt.IO.Password.new(display, options)
+      Password.new(display, options)
     end)
   end
 
@@ -370,7 +377,7 @@ defmodule Prompt do
 
   defp _display(text, opts) do
     run(opts, @display_options, fn options ->
-      Prompt.IO.Display.new(text, options)
+      Display.new(text, options)
     end)
   end
 

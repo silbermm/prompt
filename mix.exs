@@ -5,7 +5,7 @@ defmodule Prompt.MixProject do
     [
       app: :prompt,
       description: "A terminal toolkit and a set of helpers for building console applications.",
-      version: "0.10.1",
+      version: "0.10.2-rc1",
       elixir: "~> 1.12",
       package: package(),
       aliases: aliases(),
