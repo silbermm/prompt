@@ -5,7 +5,7 @@
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -371,8 +371,7 @@ defmodule Prompt do
   def display(text, opts \\ []), do: _display(text, opts)
 
   defp _display(texts, opts) when is_list(texts) do
-    _ = Enum.map(texts, &display(&1, opts))
-    :ok
+    Enum.each(texts, &display(&1, opts))
   end
 
   defp _display(text, opts) do

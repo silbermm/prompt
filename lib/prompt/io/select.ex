@@ -153,7 +153,7 @@ defmodule Prompt.IO.Select do
       |> write
 
       # reset error
-      %Select{select | error: nil}
+      %{select | error: nil}
     end
 
     defp evaluate_choice_answer(answers, %Select{multi: true} = select) do

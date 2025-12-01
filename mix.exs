@@ -27,8 +27,8 @@ defmodule Prompt.MixProject do
 
   defp deps do
     [
-      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
-      {:ex_doc, ">= 0.34.2", only: :dev, runtime: false},
+      # {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
+      {:ex_doc, ">= 0.39.1", only: :dev, runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev], runtime: false},
       {:nimble_options, "~> 1.1.1"}
     ]

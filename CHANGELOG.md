@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
   - Cleaned up all Credo reported issues
 
+### Updated
+  - ex_doc to 0.39.1
+
+### Added
+  - Flake with a dev shell for development
+
 ## [0.10.1](https://codeberg.org/ahappydeath/prompt/releases/tag/v0.10.1) - 2025-01-31
 ### Updated
   - Moved Repo to Codeberg from Sourcehut

@@ -23,3 +23,6 @@ erl_crash.dump
 prompt-*.tar
 
 priv/plts
+/.direnv/
+/.nix-hex/
+/.nix-mix/

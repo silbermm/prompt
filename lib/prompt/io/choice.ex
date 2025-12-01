@@ -78,11 +78,16 @@ defmodule Prompt.IO.Choice do
       do: choice.custom |> Keyword.take([choice.default_answer]) |> List.first() |> elem(0)
 
     defp _evaluate_choice(answer, choice) do
-      choice.custom
-      |> Enum.find(fn {_k, v} ->
-        v |> String.downcase() == answer |> String.trim() |> String.downcase()
-      end)
-      |> elem(0)
+      chosen =
+        choice.custom
+        |> Enum.find(fn {_k, v} ->
+          v |> String.downcase() == answer |> String.trim() |> String.downcase()
+        end)
+
+      case chosen do
+        nil -> :invalid
+        {result, _} -> result
+      end
     end
 
     defp background_color(display) do
