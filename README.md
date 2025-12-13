@@ -2,6 +2,10 @@
 
 [![Hex.pm](https://img.shields.io/hexpm/v/prompt?style=flat-square)](https://hexdocs.pm/prompt/Prompt.html#content)
 
+> Main development happens in [Codeberg](https://codeberg.org/ahappydeath/prompt)
+>
+> Mirrored to [Github](https://github.com/silbermm/prompt)
+
 # Terminal UI Library for Elixir
 * [Motivation](#motivation)
 * [Installation](#installation)
