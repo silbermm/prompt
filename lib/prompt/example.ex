@@ -15,6 +15,15 @@ defmodule Prompt.Example.Command1 do
   end
 end
 
+defmodule Prompt.Example.Editor do
+  import Prompt
+
+  def run() do
+    txt = editor("this is a test")
+    display(txt, color: :red)
+  end
+end
+
 defmodule Prompt.Example.Command2 do
   @moduledoc false
   use Prompt.Command

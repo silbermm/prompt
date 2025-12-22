@@ -28,6 +28,7 @@ defmodule Prompt do
     * picking from a list of choices  -> `select/2`
     * asking for passwords            -> `password/1`
     * free form text input            -> `text/1`
+    * open $EDITOR for input          -> `editor/1`
 
   ## Advanced usage
   See `Prompt.Router`
@@ -75,6 +76,7 @@ defmodule Prompt do
   alias Prompt.IO.Choice
   alias Prompt.IO.Confirm
   alias Prompt.IO.Display
+  alias Prompt.IO.Editor
   alias Prompt.IO.Password
   alias Prompt.IO.Select
   alias Prompt.IO.Text
@@ -226,6 +228,28 @@ defmodule Prompt do
     run(opts, @text_options, fn options ->
       Text.new(display, options)
     end)
+  end
+
+  @doc section: :input
+  @doc """
+  Opens the users editor of choice to gather input.
+
+  Creates a new temp file and opens it using the editor set in the $EDITOR or
+  $VISUAL environment variable. 
+
+  Whatever string is passed to the function will be the initial text in the
+  document.
+
+  When the user saves and exits the file, control is passed back to the terminal
+  and the result of this function includes all text from the file.
+  """
+  @spec editor(String.t()) :: String.t()
+  def editor(initial_text) do
+    Editor.new(initial_text)
+    |> Prompt.IO.display()
+    |> Prompt.IO.evaluate()
+
+    send(:user_drv, {self(), {:open_editor, "this is my text"}})
   end
 
   @select_options NimbleOptions.new!(
