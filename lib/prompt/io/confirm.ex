@@ -44,6 +44,8 @@ defmodule Prompt.IO.Confirm do
 
   defimpl Prompt.IO do
     def display(%Confirm{} = confirm) do
+      _ = Prompt.raw_mode_supported?() && :shell.start_interactive({:noshell, :cooked})
+
       if confirm.mask_line do
         ANSI.format([
           :reset,

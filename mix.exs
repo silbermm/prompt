@@ -5,7 +5,7 @@ defmodule Prompt.MixProject do
     [
       app: :prompt,
       description: "A terminal toolkit and a set of helpers for building console applications.",
-      version: "0.10.2-rc1",
+      version: "0.11.1-rc1",
       elixir: "~> 1.12",
       package: package(),
       aliases: aliases(),
@@ -27,8 +27,7 @@ defmodule Prompt.MixProject do
 
   defp deps do
     [
-      # {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
-      {:ex_doc, ">= 0.39.1", only: :dev, runtime: false},
+      {:ex_doc, ">= 0.39.3", only: :dev, runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev], runtime: false},
       {:nimble_options, "~> 1.1.1"}
     ]
@@ -49,7 +48,6 @@ defmodule Prompt.MixProject do
       api_reference: false,
       extras: [
         "README.md": [filename: "introduction", title: "Introduction"],
-        "example.livemd": [filename: "example", title: "Example"],
         "CHANGELOG.md": [filename: "changelog", title: "Changelog"],
         LICENSE: [filename: "license", title: "License"]
       ],

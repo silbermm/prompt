@@ -26,3 +26,5 @@ priv/plts
 /.direnv/
 /.nix-hex/
 /.nix-mix/
+/.expert/
+/.erlang-history/

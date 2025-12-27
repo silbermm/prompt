@@ -1,57 +1,110 @@
-defmodule Prompt.Example.Command1 do
-  @moduledoc false
-  use Prompt.Command
-
-  defstruct [:limit, :print]
-
-  @impl true
-  def init(opts) do
-    %__MODULE__{limit: opts.limit, print: opts.print}
-  end
-
-  @impl true
-  def process(%__MODULE__{} = cmd) do
-    display("cmd1 ran - limit: #{cmd.limit}!", color: :red)
-  end
-end
-
-defmodule Prompt.Example.Command2 do
-  @moduledoc false
-  use Prompt.Command
-
-  @impl true
-  def process(cmd) do
-    cmd
-  end
-end
-
-defmodule Prompt.Example.FallbackCommand do
-  @moduledoc false
-  use Prompt.Command
-
-  @impl true
-  def process(_cmd) do
-    display("fallback command")
-  end
-end
-
 defmodule Prompt.Example do
-  @moduledoc false
+  @moduledoc """
+  Run-able examples of all the input and output functions.
 
-  use Prompt.Router, otp_app: :prompt
+  Each of these can be ran using `mix run`
+  """
+  import Prompt
 
-  command :cmd1, Prompt.Example.Command1 do
-    arg(:limit, :integer, default: 6)
-    arg(:print, :boolean)
+  @doc """
+  See `Prompt.select/2` for full select docs
+
+  Run the following command to see an example of a single select
+  ```
+  mix run -e "Prompt.Example.single_select()" 
+  ```
+  """
+  def single_select() do
+    case select("This is an example single select menu. Pick One.", ["Erlang", "Elixir", "Gleam"]) do
+      "Erlang" -> display("A very refined taste you have.", color: :red, trim: true)
+      "Elixir" -> display("A very modern selection.", color: :magenta, trim: true)
+      "Gleam" -> display("A very typsafe pic.", color: :green, trim: true)
+    end
+
+    case confirm("Pick again?", default_answer: :no) do
+      :no ->
+        nil
+
+      :yes ->
+        single_select()
+    end
   end
 
-  command :cmd2, Prompt.Example.Command2 do
-    arg(:whatever, :string, [])
+  @doc """
+  See `Prompt.select/2` for full select docs
+
+  Run the following command to see an example of multi-select
+  ```
+  mix run -e "Prompt.Example.multi_select()" 
+  ```
+  """
+  def multi_select() do
+    selected =
+      select(
+        "This is an example multiple select menu. Choose all that apply.",
+        ["Erlang", "Elixir", "Gleam"],
+        color: :cyan,
+        multi: true
+      )
+
+    display("You chose:", trim: true)
+
+    for choice <- selected do
+      display(choice, color: :yellow, trim: true)
+    end
+
+    selected =
+      select(
+        "This is an example multiple select menu with a custom select indicator. Choose all that apply.",
+        ["Erlang", "Elixir", "Gleam"],
+        color: :cyan,
+        multi: true,
+        select_indicator: "•"
+      )
+
+    display("You chose:", trim: true)
+
+    for choice <- selected do
+      display(choice, color: :yellow, trim: true)
+    end
   end
 
-  command "", Prompt.Example.FallbackCommand do
-    arg(:blah, :boolean)
-    arg(:cmd1, :boolean)
-    arg(:limit, :integer)
+  @doc """
+  See `Prompt.display/2` for full docs on displaying text
+
+  Run the following command to see an examples of the display function
+  ```
+  mix run -e "Prompt.Example.display()" 
+  ```
+  """
+  @spec display :: none() | no_return()
+  def display() do
+    display("Here we show a colored list of words")
+
+    Enum.each(
+      ["one", "two", "three", "four", "five", "six", "seven"],
+      &display(&1, color: :red, trim: true)
+    )
+
+    _ = Prompt.text("Press [Enter] to see the next example", trim: true)
+
+    display("\nHere we use a different background color")
+
+    Enum.each(
+      ["one", "two", "three", "four", "five", "six", "seven"],
+      &display(&1, background_color: :yellow, color: :black, trim: true)
+    )
+
+    _ = Prompt.text("\nPress [Enter] to see the next example", trim: true)
+    display("Here's an example of masking output when the user hits <enter>")
+    display("password being displayed", mask_line: true)
+
+    _ = Prompt.text("Press [Enter] to see the next example", trim: true)
+    display("You can add any `IO.ANSI` escape codes when displaying")
+    display(["Current terminal width:", :bright, " #{Prompt.width()}"], trim: true)
+
+    display(["Current terminal height:", :light_green, :bright, " #{Prompt.height()}"],
+      trim: true
+    )
   end
 end

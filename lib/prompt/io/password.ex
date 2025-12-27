@@ -22,6 +22,8 @@ defmodule Prompt.IO.Password do
 
   defimpl Prompt.IO do
     def display(password) do
+      _ = Prompt.raw_mode_supported?() && :shell.start_interactive({:noshell, :cooked})
+
       [
         :reset,
         background_color(password),

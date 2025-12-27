@@ -20,8 +20,6 @@
 * [Advanced Usage](#advanced-usage-with-subcommands)
 * [Example Application](#example)
 
-[![Run in Livebook](https://livebook.dev/badge/v1/black.svg)](https://livebook.dev/run?url=https%3A%2F%2Fgithub.com%2Fsilbermm%2Fprompt%2Fblob%2Fmain%2Fexample.livemd)
-
 ## Motivation
 
 To create a really great development experience and API for Elixir developers that want to build commandline tools.
@@ -39,6 +37,15 @@ end
 ```
 
 [Read the official documentation](https://hexdocs.pm/prompt/Prompt.html)
+
+## Examples
+See [./lib/prompt/example.ex](example.ex) for some examples of usage.
+
+To run the examples:
+
+```elixir
+mix run -e "Prompt.Example.Commands.all()"
+```
 
 ## Basic Usage
 All of the following commands take a keyword list of options for things like text color and positioning.
@@ -113,6 +120,8 @@ Displays:
 ```
 and returns a string of their choice
 
+> When building against Erlang 28 and higher a more interactive select is available which allows the users to use their arrow keys to choose an option.
+
 ### Tables
 [Prompt.table/2](https://hexdocs.pm/prompt/Prompt.html#table/2)
 To show a table of data
@@ -131,4 +140,4 @@ Will display
 To use the more advanced features, see the [official documentation](https://hexdocs.pm/prompt/Prompt.html#module-subcommands)
 
 ## Example
-For a complete example, take a look at [Genex - a password manager](https://git.sr.ht/~ahappydeath/genex)
+For a complete example, take a look at [Genex - a password manager](https://codeberg.org/ahappydeath/genex)

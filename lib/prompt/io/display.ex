@@ -30,6 +30,8 @@ defmodule Prompt.IO.Display do
 
   defimpl Prompt.IO do
     def display(text) do
+      _ = Prompt.raw_mode_supported?() && :shell.start_interactive({:noshell, :cooked})
+
       # Put the cursor in the correct place
       _ = position(text.position, text.text)
 
@@ -53,7 +55,7 @@ defmodule Prompt.IO.Display do
           without_newline(text.trim)
         ]
         |> IO.ANSI.format()
-        |> write()
+        |> IO.puts()
       end
 
       text

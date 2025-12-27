@@ -38,6 +38,8 @@ defmodule Prompt.IO.Choice do
 
   defimpl Prompt.IO do
     def display(choice) do
+      _ = Prompt.raw_mode_supported?() && :shell.start_interactive({:noshell, :cooked})
+
       [
         :reset,
         background_color(choice),

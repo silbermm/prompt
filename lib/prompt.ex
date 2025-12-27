@@ -1,4 +1,4 @@
-# Prompt - library to help create interative CLI in Elixir
+# Prompt - library to help create interactive CLI in Elixir
 # Copyright (C) 2021  Matt Silbernagel
 #
 # This program is free software: you can redistribute it and/or modify
@@ -244,39 +244,75 @@ defmodule Prompt do
                       default: false,
                       doc: "Allows multiple selections from the options presented."
                     ],
+                    select_keys: [
+                      type_doc: "a list of keyboard keys or escape sequences",
+                      type: {:list, :string},
+                      default: ["\t", " "],
+                      doc:
+                        "**Erlang >= 28 only** - determines which keyboard keys are used to mark a selection."
+                    ],
+                    select_indicator: [
+                      type: :string,
+                      default: ">"
+                    ],
                     trim: [type: :boolean, default: true, doc: false]
                   )
 
   @doc section: :input
   @doc """
-  Displays options to the user denoted by numbers.
+  Displays options to the user to choose from - single and multi select is supported.
 
   Allows for a list of 2 tuples where the first value is what is displayed
   and the second value is what is returned to the caller.
 
-  Supported options:
+  ## Supported options:
   #{NimbleOptions.docs(@select_options)}
 
   ## Examples
 
       iex> Prompt.select("Choose One", ["Choice A", "Choice B"])
-      "  [1] Choice A"
-      "  [2] Choice B"
-      "Choose One [1-2]:" 1
-      iex> "Choice A"
+      "Choose One"
+
+      " > Choice A"
+      "   Choice B"
 
       iex> Prompt.select("Choose One", [{"Choice A", 1000}, {"Choice B", 1001}])
-      "  [1] Choice A"
-      "  [2] Choice B"
-      "Choose One [1-2]:" 2
-      iex> 1001
+      "Choose One"
+      
+      " > Choice A"
+      "  Choice B"
 
       iex> Prompt.select("Choose as many as you want", ["Choice A", "Choice B"], multi: true)
-      "  [1] Choice A"
-      "  [2] Choice B"
-      "Choose as many as you want [1-2]:" 1 2
-      iex> ["Choice A", "Choice B"]
+      "Choose as many as you want (<tab> marks selection, <enter> submits choices)
 
+      " > Choice A"
+      " > Choice B"
+
+  > ### Erlang versions < 28 {: .warning}
+  > 
+  > Erlang 28 introduced a new `raw` mode that allows for a more interactive
+  > select experience by capturing keys other then the return key.
+  > 
+  > If this library is compiled with Erlang 27 or under, the select experience falls
+  > back to the previous behavior of asking the user to enter the number of the choice
+  > and pressing <enter> and will look like:
+  > 
+  >   ```
+  >   Prompt.select("Choose One", ["Choice A", "Choice B"])
+  >     [1] Choice A
+  >     [2] Choice B
+  >   Choose One [1-2]:
+  >
+  >   iex> Prompt.select("Choose One", [{"Choice A", 1000}, {"Choice B", 1001}])
+  >     [1] Choice A
+  >     [2] Choice B
+  >   Choose One [1-2]:
+  >
+  >   iex> Prompt.select("Choose as many as you want", ["Choice A", "Choice B"], multi: true)
+  >     [1] Choice A
+  >     [2] Choice B
+  >   Choose as many as you want [1-2]:
+  >   ```
   """
   @spec select(String.t(), list(String.t()) | list({String.t(), any()}), keyword()) ::
           any() | :error
@@ -362,19 +398,14 @@ defmodule Prompt do
       "Hello from the terminal!"
 
       iex> Prompt.display(["Hello", "from", "the", "terminal"])
-      "Hello"
-      "from"
-      "the"
-      "terminal"
+      "Hellofromtheterminal"
+
+      iex> Prompt.display(["Hello", " from", " the", " terminal"])
+      "Hellofromtheterminal"
+
   """
   @spec display(String.t() | list(String.t()), keyword()) :: :ok
-  def display(text, opts \\ []), do: _display(text, opts)
-
-  defp _display(texts, opts) when is_list(texts) do
-    Enum.each(texts, &display(&1, opts))
-  end
-
-  defp _display(text, opts) do
+  def display(text, opts \\ []) do
     run(opts, @display_options, fn options ->
       Display.new(text, options)
     end)
@@ -524,5 +555,27 @@ defmodule Prompt do
         display(err.message, error: true)
         :error
     end
+  end
+
+  @doc """
+  Does the current Erlang runtime version support raw terminal mode?
+  """
+  @spec raw_mode_supported? :: boolean()
+  def raw_mode_supported? do
+    System.otp_release()
+    |> String.to_integer()
+    |> then(&(&1 >= 28))
+  end
+
+  @doc false
+  def width() do
+    {:ok, columns} = :io.columns()
+    columns
+  end
+
+  @doc false
+  def height() do
+    {:ok, rows} = :io.rows()
+    rows
   end
 end

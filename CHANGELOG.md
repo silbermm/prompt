@@ -8,11 +8,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
   - Cleaned up all Credo reported issues
 
-### Updated
-  - ex_doc to 0.39.1
+### Changed
+  - Changed the way `display/2` handles iolists - Instead of writing each
+    element in the list individually, it now passes the iolist straight through
+    to the IO.write function
 
 ### Added
   - Flake with a dev shell for development
+  - New `select` experience using Erlang 28 'raw' shell support
+
+### Removed
+  - Livebook example
 
 ## [0.10.1](https://codeberg.org/ahappydeath/prompt/releases/tag/v0.10.1) - 2025-01-31
 ### Updated

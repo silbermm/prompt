@@ -74,58 +74,35 @@ defmodule PromptTest do
 
   describe "select" do
     test "returns selected option" do
-      assert capture_io("1", fn ->
+      assert capture_io("\r", fn ->
                result = Prompt.select("Which email?", ["t@t.com", "a@a.com"])
                assert result == "t@t.com"
-             end) =~ "Which email? [1-2]:"
-    end
-
-    test "requires choice from list" do
-      assert capture_io("3", fn ->
-               Prompt.select("Which email?", ["t@t.com", "a@a.com"])
-             end) =~ "Enter a number from 1-2: "
-    end
-
-    test "requires valid number" do
-      assert capture_io("one", fn ->
-               Prompt.select("Which email?", ["t@t.com", "a@a.com"])
-             end) =~ "Enter a number from 1-2: "
+             end) =~ "Which email?"
     end
 
     test "allows list of tuples" do
-      assert capture_io("1", fn ->
+      assert capture_io("\r", fn ->
                result = Prompt.select("Which email?", [{"t@t.com", "t"}, {"a@a.com", "a"}])
                assert result == "t"
-             end) =~ "Which email? [1-2]:"
+             end) =~ "Which email?"
     end
 
-    test "returns selected options(multi)" do
-      assert capture_io("1 2", fn ->
-               result = Prompt.select("Which email?", ["t@t.com", "a@a.com"], multi: true)
-               assert result == ["t@t.com", "a@a.com"]
-             end) =~ "Which email? [1-2]:"
-    end
-
-    test "allows list of tuples(multi)" do
-      assert capture_io("1 2", fn ->
-               result =
-                 Prompt.select("Which email?", [{"t@t.com", "t"}, {"a@a.com", "a"}], multi: true)
-
-               assert result == ["t", "a"]
-             end) =~ "Which email? [1-2]:"
-    end
-
-    test "returns selected options(multi) - requires integers" do
-      assert capture_io("one", fn ->
-               Prompt.select("Which email?", ["t@t.com", "a@a.com"], multi: true)
-             end) =~ "Enter numbers from 1-2 seperated by spaces: "
-    end
-
-    test "returns selected options(multi) - requires choice" do
-      assert capture_io("3", fn ->
-               Prompt.select("Which email?", ["t@t.com", "a@a.com"], multi: true)
-             end) =~ "Enter numbers from 1-2 seperated by spaces: "
-    end
+    ## TODO: Figure out how best to test these
+    # test "returns selected options(multi)" do
+    #   assert capture_io("\t", fn ->
+    #            result = Prompt.select("Which email?", ["t@t.com", "a@a.com"], multi: true)
+    #            assert result == ["t@t.com", "a@a.com"]
+    #          end) =~ "Which email? [1-2]:"
+    # end
+    #
+    # test "allows list of tuples(multi)" do
+    #   assert capture_io("\t \r", fn ->
+    #            result =
+    #              Prompt.select("Which email?", [{"t@t.com", "t"}, {"a@a.com", "a"}], multi: true)
+    #
+    #            assert result == ["t"]
+    #          end) =~ "Which email?"
+    # end
   end
 
   describe "text" do
