@@ -102,7 +102,7 @@ defmodule Prompt.IO.Select do
     defp interactive_select(select) do
       _ = :shell.start_interactive({:noshell, :raw})
 
-      [
+      init = [
         :reset,
         ANSI.cursor_left(1000),
         background_color(select),
@@ -110,26 +110,27 @@ defmodule Prompt.IO.Select do
         "#{select.display}",
         "\n"
       ]
-      |> ANSI.format()
-      |> write()
 
-      for {choice, number} <- Enum.with_index(select.choices) do
-        [
-          background_color(select),
-          select.color,
-          :bright,
-          "\n",
-          ANSI.cursor_left(1000),
-          print_selector(select, number),
-          select_text(choice)
-        ]
-        |> ANSI.format()
-        |> write()
-      end
+      choices =
+        for {choice, number} <- Enum.with_index(select.choices) do
+          [
+            background_color(select),
+            select.color,
+            :bright,
+            "\n",
+            ANSI.cursor_left(1000),
+            print_selector(select, number),
+            select_text(choice)
+          ]
+        end
 
       [
-        ANSI.cursor_up(length(select.choices) - 1),
-        ANSI.cursor_left(2000)
+        init,
+        choices
+        | [
+            ANSI.cursor_up(length(select.choices) - 1),
+            ANSI.cursor_left(2000)
+          ]
       ]
       |> ANSI.format()
       |> write()

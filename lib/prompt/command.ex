@@ -1,4 +1,4 @@
-# Prompt - library to help create interative CLI in Elixir
+# Prompt - library to help create interactive CLI in Elixir
 # Copyright (C) 2020  Matt Silbernagel
 #
 # This program is free software: you can redistribute it and/or modify

@@ -107,4 +107,9 @@ defmodule Prompt.Example do
       trim: true
     )
   end
+
+  def text() do
+    user_value = Prompt.text("Please enter your email", trim: true)
+    display("Thanks, #{user_value}, we'll be in touch!", trim: true)
+  end
 end
