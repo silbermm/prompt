@@ -379,6 +379,11 @@ defmodule Prompt do
                        default: false,
                        doc:
                          "If set to true, this will mask the current line by replacing it with `#####`. Useful when showing passwords in the terminal."
+                     ],
+                     alt_buffer: [
+                       type: :boolean,
+                       default: false,
+                       doc: "Should the display on an alternative buffer?"
                      ]
                    )
 
@@ -386,7 +391,7 @@ defmodule Prompt do
   @doc """
   Writes text to the screen.
 
-  Takes a single string argument or a list of strings where each item in the list will be diplayed on a new line.
+  Takes a single string argument or a list of strings where each item in the list will be displayed on a new line.
 
 
   Supported options:
@@ -470,7 +475,6 @@ defmodule Prompt do
        Hello from the     terminal
        this  is   another row
       "
-
   """
   @spec table(list(list()), keyword()) :: :ok
   def table(matrix, opts \\ []) when is_list(matrix) do

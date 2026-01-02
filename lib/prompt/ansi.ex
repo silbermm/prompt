@@ -3,6 +3,11 @@ defmodule Prompt.ANSI do
   Some common ANSI codes for the terminal.
   """
 
+  @escape_codes ["\e", "\n", "\t"]
+
+  @doc "Determines if the provided string is an ANSI escape code"
+  defguard is_escape_code(bin) when bin in @escape_codes
+
   @doc """
   Show an alternative screen buffer
   """

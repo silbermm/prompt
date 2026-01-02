@@ -98,9 +98,18 @@ defmodule Prompt.Example do
     _ = Prompt.text("\nPress [Enter] to see the next example", trim: true)
 
     display("Here's an example of masking output when the user hits <enter>")
-    display("password being displayed", mask_line: true)
+    display([:bright, "users password"], mask_line: true)
 
     _ = Prompt.text("Press [Enter] to see the next example", trim: true)
+
+    display([IO.ANSI.cursor(0, 0), "Or you can show sensitive content on the alt buffer instead"],
+      alt_buffer: true
+    )
+
+    display([:bright, "password being displayed"])
+
+    _ = Prompt.text("Press [Enter] to turn off the alt buffer", trim: true)
+    display(Prompt.ANSI.alt_screen_buffer_off())
 
     display("You can add any `IO.ANSI` escape codes when displaying")
     display(["Current terminal width:", :bright, " #{Prompt.width()}"])
@@ -111,6 +120,23 @@ defmodule Prompt.Example do
 
     display("You also display on the right hand side", position: :right)
     display("Current terminal width:", trim: true)
-    display([:bright, " #{Prompt.width()}"], position: :right)
+
+    display([:bright, " #{Prompt.width()}"],
+      position: :right,
+      color: :black,
+      background_color: :magenta
+    )
+
+    _ = Prompt.text("Press [Enter] to see the next example", trim: true)
+
+    display([
+      "Formatting output can be easily accomplished using ",
+      :bright,
+      ":io_lib.format/1",
+      :reset,
+      " from Erlang stdlib"
+    ])
+
+    display(:io_lib.format("Pi is approximately given by:~10.3f~n", [:math.pi()]))
   end
 end
