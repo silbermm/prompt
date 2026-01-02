@@ -2,7 +2,7 @@ defmodule Prompt.IO.Display do
   @moduledoc false
 
   alias __MODULE__
-  import IO, only: [write: 1, read: 2]
+  import IO, only: [read: 2]
 
   @type t() :: %Display{
           text: binary(),
@@ -28,35 +28,37 @@ defmodule Prompt.IO.Display do
     }
   end
 
-  defimpl Prompt.IO do
+  defimpl Prompt.IO.Terminal do
     def display(text) do
       _ = Prompt.raw_mode_supported?() && :shell.start_interactive({:noshell, :cooked})
 
       # Put the cursor in the correct place
-      _ = position(text.position, text.text)
+      start = [position(text.position, text.text)]
 
-      if text.mask_line && text.from == :self do
-        IO.ANSI.format([
-          :reset,
-          background_color(text),
-          text.color,
-          text.text,
-          :reset,
-          " [Press Enter to continue]"
-        ])
-        |> write()
-      else
-        [
-          :reset,
-          background_color(text),
-          text.color,
-          text.text,
-          :reset,
-          without_newline(text.trim)
-        ]
-        |> IO.ANSI.format()
-        |> IO.puts()
-      end
+      content =
+        if text.mask_line && text.from == :self do
+          [
+            :reset,
+            background_color(text),
+            text.color,
+            text.text,
+            :reset,
+            " [Press Enter to continue]"
+          ]
+        else
+          [
+            :reset,
+            background_color(text),
+            text.color,
+            text.text,
+            :reset,
+            without_newline(text.trim)
+          ]
+        end
+
+      start ++ content
+      |> IO.ANSI.format()
+      |> Prompt.IO.write()
 
       text
     end
@@ -76,11 +78,29 @@ defmodule Prompt.IO.Display do
     defp without_newline(true), do: ""
     defp without_newline(false), do: "\n"
 
-    defp position(:left, _), do: write(IO.ANSI.cursor_left(10_000))
+    defp position(:left, _), do: IO.ANSI.cursor_left(10_000)
 
-    defp position(:right, content) do
+    defp position(:right, content) when is_binary(content) do
       move_left = String.length(content)
-      write(IO.ANSI.cursor_right(10_000) <> IO.ANSI.cursor_left(move_left))
+      [IO.ANSI.cursor_right(10_000), IO.ANSI.cursor_left(move_left)]
+    end
+
+    defp position(:right, content) when is_list(content) do
+      move_left =
+        content
+        |> List.flatten()
+        |> Enum.reject(fn
+          input when is_atom(input) -> true
+          input when is_binary(input) -> String.starts_with?(input, "\\")
+          _ -> true
+        end)
+        |> Enum.reduce(0, fn x, acc -> acc + String.length(x) end)
+        |> dbg
+
+      dbg content
+      dbg move_left
+
+      [IO.ANSI.cursor_right(10_000), IO.ANSI.cursor_left(move_left)]
     end
 
     defp background_color(display) do

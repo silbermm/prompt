@@ -17,19 +17,20 @@
 defprotocol Prompt.IO.Terminal do
   @moduledoc false
 
-  @doc "Display the IO"
   @spec display(t()) :: t()
   def display(data)
 
-  @doc "Evaluate the IO"
   @spec display(t()) :: iodata()
   def evaluate(data)
 end
 
 defmodule Prompt.IO do
+  @moduledoc false
   @behaviour Prompt.IO.Terminal
-  
-  defdelegate display(data), to: Prompt.IO.Terminal
 
+  defdelegate display(data), to: Prompt.IO.Terminal
   defdelegate evaluate(data), to: Prompt.IO.Terminal
+
+  @callback write(iolist()) :: :ok
+  def write(data), do: Application.get_env(:prompt, :io, IO).write(data)
 end

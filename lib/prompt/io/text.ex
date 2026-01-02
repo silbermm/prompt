@@ -28,7 +28,7 @@ defmodule Prompt.IO.Text do
     }
   end
 
-  defimpl Prompt.IO do
+  defimpl Prompt.IO.Terminal do
     @spec display(Prompt.IO.Text.t()) :: Prompt.IO.Text.t()
     def display(txt) do
       _ = Prompt.raw_mode_supported?() && :shell.start_interactive({:noshell, :cooked})

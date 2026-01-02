@@ -89,7 +89,7 @@ defmodule Prompt.IO.Select do
     }
   end
 
-  defimpl Prompt.IO do
+  defimpl Prompt.IO.Terminal do
     @spec display(Prompt.IO.Select.t()) :: Prompt.IO.Select.t()
     def display(%Select{} = select) do
       if Prompt.raw_mode_supported?() do

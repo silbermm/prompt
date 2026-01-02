@@ -20,7 +20,7 @@ defmodule Prompt.IO.Password do
     }
   end
 
-  defimpl Prompt.IO do
+  defimpl Prompt.IO.Terminal do
     def display(password) do
       _ = Prompt.raw_mode_supported?() && :shell.start_interactive({:noshell, :cooked})
 

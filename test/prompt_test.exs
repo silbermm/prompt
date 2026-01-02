@@ -2,6 +2,10 @@ defmodule PromptTest do
   use ExUnit.Case
   import ExUnit.CaptureIO
 
+  setup do
+    Application.put_env(:prompt, :io, IO)
+  end
+
   describe "confirm" do
     test "handle confirm" do
       assert capture_io("y", fn ->

@@ -42,7 +42,7 @@ defmodule Prompt.IO.Confirm do
     }
   end
 
-  defimpl Prompt.IO do
+  defimpl Prompt.IO.Terminal do
     def display(%Confirm{} = confirm) do
       _ = Prompt.raw_mode_supported?() && :shell.start_interactive({:noshell, :cooked})
 

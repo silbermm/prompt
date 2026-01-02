@@ -83,7 +83,7 @@ defmodule Prompt.Example do
 
     Enum.each(
       ["one", "two", "three", "four", "five", "six", "seven"],
-      &display(&1, color: :red, trim: true)
+      &display(&1, color: :red)
     )
 
     _ = Prompt.text("Press [Enter] to see the next example", trim: true)
@@ -92,19 +92,25 @@ defmodule Prompt.Example do
 
     Enum.each(
       ["one", "two", "three", "four", "five", "six", "seven"],
-      &display(&1, background_color: :yellow, color: :black, trim: true)
+      &display(&1, background_color: :yellow, color: :black)
     )
 
     _ = Prompt.text("\nPress [Enter] to see the next example", trim: true)
+
     display("Here's an example of masking output when the user hits <enter>")
     display("password being displayed", mask_line: true)
 
     _ = Prompt.text("Press [Enter] to see the next example", trim: true)
-    display("You can add any `IO.ANSI` escape codes when displaying")
-    display(["Current terminal width:", :bright, " #{Prompt.width()}"], trim: true)
 
-    display(["Current terminal height:", :light_green, :bright, " #{Prompt.height()}"],
-      trim: true
-    )
+    display("You can add any `IO.ANSI` escape codes when displaying")
+    display(["Current terminal width:", :bright, " #{Prompt.width()}"])
+
+    display(["Current terminal height:", :light_green, :bright, " #{Prompt.height()}"])
+
+    _ = Prompt.text("Press [Enter] to see the next example", trim: true)
+
+    display("You also display on the right hand side", position: :right)
+    display("Current terminal width:", trim: true)
+    display([:bright, " #{Prompt.width()}"], position: :right)
   end
 end

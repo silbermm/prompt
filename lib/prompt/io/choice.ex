@@ -36,7 +36,7 @@ defmodule Prompt.IO.Choice do
     }
   end
 
-  defimpl Prompt.IO do
+  defimpl Prompt.IO.Terminal do
     def display(choice) do
       _ = Prompt.raw_mode_supported?() && :shell.start_interactive({:noshell, :cooked})
 
