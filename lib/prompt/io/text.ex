@@ -3,9 +3,10 @@ defmodule Prompt.IO.Text do
 
   alias __MODULE__
   alias IO.ANSI
-  import IO, only: [write: 1, read: 2]
+  import IO, only: [read: 2]
 
   @type t() :: %Text{
+          content: list(),
           question: String.t(),
           color: any(),
           background_color: any(),
@@ -14,11 +15,12 @@ defmodule Prompt.IO.Text do
           max: integer()
         }
 
-  defstruct [:question, :color, :background_color, :trim, :min, :max]
+  defstruct [:content, :question, :color, :background_color, :trim, :min, :max]
 
   @doc ""
   def new(question, options) do
     %Text{
+      content: [],
       question: question,
       color: Keyword.get(options, :color, IO.ANSI.default_color()),
       background_color: Keyword.get(options, :background_color),
@@ -28,23 +30,28 @@ defmodule Prompt.IO.Text do
     }
   end
 
+  def add_content(%Text{content: content} = text, to_add),
+    do: %{text | content: content ++ [to_add]}
+
   defimpl Prompt.IO.Terminal do
-    @spec display(Prompt.IO.Text.t()) :: Prompt.IO.Text.t()
-    def display(txt) do
+    def display(text) do
       _ = Prompt.raw_mode_supported?() && :shell.start_interactive({:noshell, :cooked})
 
-      [
-        :reset,
-        background_color(txt),
-        txt.color,
-        "#{txt.question}: ",
-        :reset,
-        without_newline(txt.trim)
-      ]
-      |> ANSI.format()
-      |> write()
+      text =
+        Text.add_content(text, [
+          :reset,
+          background_color(text),
+          text.color,
+          "#{text.question}: ",
+          :reset,
+          without_newline(text.trim)
+        ])
 
-      txt
+      text.content
+      |> ANSI.format()
+      |> Prompt.IO.write()
+
+      text
     end
 
     @spec evaluate(Prompt.IO.Text.t()) :: String.t() | :error_min | :error_max

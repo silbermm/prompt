@@ -7,6 +7,37 @@ defmodule Prompt.Example do
   import Prompt
 
   @doc """
+  See `Prompt.text/2` for full docs on text input
+
+  Run the following command to examples of asking for user text input
+  ```
+  mix run -e "Prompt.Example.text()" 
+  ```
+  """
+  def text do
+    display("You can prompt for input with min and max number of charactors")
+
+    case text("What is your age?", min: 1, max: 2, trim: true) do
+      :error_min -> display("You need to have at least one number", color: :red)
+      :error_max -> display("You are too old!", color: :red)
+      answer -> display("Thanks for recording your age as #{answer}")
+    end
+
+    _ = Prompt.text("\nPress [Enter] to see the next example", trim: true)
+
+    display("You can prompt for input with no max")
+
+    case text("Write your book here", min: 1) do
+      :error_min ->
+        display("You need to have at least one charactor", color: :red)
+
+      answer ->
+        display("Repeating that back")
+        display(answer, color: :yellow)
+    end
+  end
+
+  @doc """
   See `Prompt.select/2` for full select docs
 
   Run the following command to see an example of a single select
