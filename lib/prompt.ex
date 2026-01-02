@@ -572,13 +572,13 @@ defmodule Prompt do
   end
 
   @doc false
-  def width() do
+  def width do
     {:ok, columns} = :io.columns()
     columns
   end
 
   @doc false
-  def height() do
+  def height do
     {:ok, rows} = :io.rows()
     rows
   end

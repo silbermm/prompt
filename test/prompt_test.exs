@@ -91,7 +91,7 @@ defmodule PromptTest do
              end) =~ "Which email?"
     end
 
-    ## TODO: Figure out how best to test these
+    # Figure out how best to test these
     # test "returns selected options(multi)" do
     #   assert capture_io("\t", fn ->
     #            result = Prompt.select("Which email?", ["t@t.com", "a@a.com"], multi: true)

@@ -14,7 +14,7 @@ defmodule Prompt.Example do
   mix run -e "Prompt.Example.single_select()" 
   ```
   """
-  def single_select() do
+  def single_select do
     case select("This is an example single select menu. Pick One.", ["Erlang", "Elixir", "Gleam"]) do
       "Erlang" -> display("A very refined taste you have.", color: :red, trim: true)
       "Elixir" -> display("A very modern selection.", color: :magenta, trim: true)
@@ -38,7 +38,7 @@ defmodule Prompt.Example do
   mix run -e "Prompt.Example.multi_select()" 
   ```
   """
-  def multi_select() do
+  def multi_select do
     selected =
       select(
         "This is an example multiple select menu. Choose all that apply.",
@@ -78,7 +78,7 @@ defmodule Prompt.Example do
   ```
   """
   @spec display :: none() | no_return()
-  def display() do
+  def display do
     display("Here we show a colored list of words")
 
     Enum.each(
