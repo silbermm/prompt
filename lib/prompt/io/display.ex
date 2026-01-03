@@ -31,11 +31,16 @@ defmodule Prompt.IO.Display do
   ]
 
   def new(txt, options) do
+    background_color =
+      options
+      |> Keyword.get(:background_color)
+      |> Prompt.IO.background_color()
+
     %Display{
-      content: [],
+      content: [:reset],
       text: txt,
       color: Keyword.get(options, :color, IO.ANSI.default_color()),
-      background_color: Keyword.get(options, :background_color),
+      background_color: background_color,
       mask_line: Keyword.get(options, :mask_line),
       trim: Keyword.get(options, :trim),
       from: Keyword.get(options, :from),
@@ -48,53 +53,38 @@ defmodule Prompt.IO.Display do
     do: %{display | content: content ++ [to_add]}
 
   defimpl Prompt.IO.Terminal do
-    def display(text) do
+    def display(display) do
       _ = Prompt.raw_mode_supported?() && :shell.start_interactive({:noshell, :cooked})
 
-      text =
-        if text.alt_buffer,
-          do: Display.add_content(text, Prompt.ANSI.alt_screen_buffer_on()),
-          else: text
+      display =
+        if display.alt_buffer,
+          do: Display.add_content(display, Prompt.ANSI.alt_screen_buffer_on()),
+          else: display
 
-      # Put the cursor in the correct place
-      text = Display.add_content(text, [position(text.position, text.text)])
+      display =
+        display
+        |> Display.add_content([position(display.position, display.text)])
+        |> Display.add_content([
+          display.background_color,
+          display.color,
+          display.text,
+          :reset
+        ])
 
-      text =
-        if text.mask_line && text.from == :self do
-          Display.add_content(
-            text,
-            [
-              :reset,
-              background_color(text),
-              text.color,
-              text.text,
-              :reset,
-              " [Press Enter to continue]"
-            ]
-          )
-        else
-          Display.add_content(
-            text,
-            [
-              :reset,
-              background_color(text),
-              text.color,
-              text.text,
-              :reset,
-              without_newline(text.trim)
-            ]
-          )
-        end
+      display =
+        (display.mask_line && display.from == :self &&
+           Display.add_content(display, [" [Press Enter to continue]"])) ||
+          maybe_with_newline(display)
 
-      text.content
+      display.content
       |> IO.ANSI.format()
       |> Prompt.IO.write()
 
-      text
+      display
     end
 
-    def evaluate(text) do
-      if text.mask_line && text.from == :self do
+    def evaluate(display) do
+      if display.mask_line && display.from == :self do
         case read(:stdio, :line) do
           :eof -> :error
           {:error, _reason} -> :error
@@ -105,8 +95,8 @@ defmodule Prompt.IO.Display do
       :ok
     end
 
-    defp without_newline(true), do: ""
-    defp without_newline(false), do: "\n"
+    defp maybe_with_newline(%Display{trim: true} = display), do: display
+    defp maybe_with_newline(display), do: Display.add_content(display, "\n")
 
     defp position(:left, _), do: IO.ANSI.cursor_left(10_000)
 
@@ -127,13 +117,6 @@ defmodule Prompt.IO.Display do
         |> Enum.reduce(0, fn x, acc -> acc + String.length(x) end)
 
       [IO.ANSI.cursor_right(10_000), IO.ANSI.cursor_left(move_left)]
-    end
-
-    defp background_color(display) do
-      case display.background_color do
-        nil -> IO.ANSI.default_background()
-        res -> String.to_atom("#{Atom.to_string(res)}_background")
-      end
     end
   end
 end

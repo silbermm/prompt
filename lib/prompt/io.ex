@@ -28,9 +28,13 @@ defmodule Prompt.IO do
   @moduledoc false
   @behaviour Prompt.IO.Terminal
 
+  # Use the protocol to dispatch the behaviour
   defdelegate display(data), to: Prompt.IO.Terminal
   defdelegate evaluate(data), to: Prompt.IO.Terminal
 
   @callback write(iolist()) :: :ok
   def write(data), do: Application.get_env(:prompt, :io, IO).write(data)
+
+  def background_color(nil), do: IO.ANSI.default_background()
+  def background_color(res), do: String.to_atom("#{Atom.to_string(res)}_background")
 end

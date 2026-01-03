@@ -14,16 +14,15 @@ defmodule Prompt.IO.DisplayTest do
                [
                  [
                    [
-                     [[[[[[], "\e[10000D"] | "\e[0m"], "\e[49m"], "\e[39m"] | "\e[1m"],
-                     "Print on the left"
-                   ]
-                   | "\e[0m"
-                 ],
-                 # no newline
-                 ""
+                     [[[[[] | _], "\e[10000D"], "\e[49m"], "\e[39m"] | _
+                   ],
+                   "Print on the left"
+                 ]
+                 | _
                ]
-               | "\e[0m"
-             ] = io
+               | _
+             ] =
+               io
 
       :ok
     end)
@@ -41,16 +40,13 @@ defmodule Prompt.IO.DisplayTest do
                [
                  [
                    [
-                     [
-                       [[[[[], "\e[10000D"] | "\e[0m"] | "\e[45m"], "\e[39m"] | _
-                     ],
-                     "Print on the left"
-                   ]
-                   | _
-                 ],
-                 ""
+                     [[[[[] | _], "\e[10000D"] | "\e[45m"], "\e[39m"] | "\e[1m"
+                   ],
+                   "Print on the left"
+                 ]
+                 | "\e[0m"
                ]
-               | _
+               | "\e[0m"
              ] =
                io
 
@@ -75,10 +71,13 @@ defmodule Prompt.IO.DisplayTest do
                      [
                        [
                          [
-                           [[[[[], "\e[10000C"], ^expected_escape] | _], "\e[49m"],
+                           [
+                             [[[[] | "\e[0m"], "\e[10000C"], ^expected_escape],
+                             "\e[49m"
+                           ],
                            "\e[39m"
                          ]
-                         | _
+                         | "\e[1m"
                        ],
                        ^rightside_visible_content
                      ]
@@ -111,7 +110,10 @@ defmodule Prompt.IO.DisplayTest do
                      [
                        [
                          [
-                           [[[[[], "\e[10000C"], ^expected_escape] | "\e[0m"], "\e[49m"],
+                           [
+                             [[[[] | _], "\e[10000C"], ^expected_escape],
+                             "\e[49m"
+                           ],
                            "\e[39m"
                          ],
                          _

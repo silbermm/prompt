@@ -19,11 +19,16 @@ defmodule Prompt.IO.Text do
 
   @doc ""
   def new(question, options) do
+    background_color =
+      options
+      |> Keyword.get(:background_color)
+      |> Prompt.IO.background_color()
+
     %Text{
-      content: [],
+      content: [:reset],
       question: question,
       color: Keyword.get(options, :color, IO.ANSI.default_color()),
-      background_color: Keyword.get(options, :background_color),
+      background_color: background_color,
       trim: Keyword.get(options, :trim),
       min: Keyword.get(options, :min, 0),
       max: Keyword.get(options, :max, 0)
@@ -38,14 +43,14 @@ defmodule Prompt.IO.Text do
       _ = Prompt.raw_mode_supported?() && :shell.start_interactive({:noshell, :cooked})
 
       text =
-        Text.add_content(text, [
-          :reset,
-          background_color(text),
+        text
+        |> Text.add_content([
+          text.background_color,
           text.color,
           "#{text.question}: ",
-          :reset,
-          without_newline(text.trim)
+          :reset
         ])
+        |> maybe_with_newline()
 
       text.content
       |> ANSI.format()
@@ -84,15 +89,8 @@ defmodule Prompt.IO.Text do
       end
     end
 
-    defp without_newline(true), do: ""
-    defp without_newline(false), do: "\n"
-
-    defp background_color(display) do
-      case display.background_color do
-        nil -> ANSI.default_background()
-        res -> String.to_atom("#{Atom.to_string(res)}_background")
-      end
-    end
+    def maybe_with_newline(%{trim: true} = text), do: text
+    def maybe_with_newline(text), do: Text.add_content(text, "\n")
 
     defp determine_min(answer, %Text{min: min}) when min > 0 do
       min_size = min * 8
