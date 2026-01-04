@@ -38,6 +38,20 @@ defmodule Prompt.Example do
   end
 
   @doc """
+  See `Prompt.password/2` for full docs on password input
+
+  Run the following command to examples of asking for concealed input
+  ```
+  mix run -e "Prompt.Example.password()" 
+  ```
+  """
+  def password do
+    display("You can prompt for passowrds and the input will be concealed")
+    answer = password("Enter your password")
+    display("Thanks for giving us your password of #{answer}", color: :green)
+  end
+
+  @doc """
   See `Prompt.select/2` for full select docs
 
   Run the following command to see an example of a single select
