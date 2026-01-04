@@ -1,6 +1,6 @@
-defmodule Prompt.Example do
+defmodule Prompt.IO.Examples do
   @moduledoc """
-  Run-able examples of all the input and output functions.
+  Runnable examples of all the input and output functions.
 
   Each of these can be ran using `mix run`
   """
@@ -11,7 +11,7 @@ defmodule Prompt.Example do
 
   Run the following command to examples of asking for user text input
   ```
-  mix run -e "Prompt.Example.text()" 
+  mix run -e "Prompt.IO.Examples.text()" 
   ```
   """
   def text do
@@ -42,7 +42,7 @@ defmodule Prompt.Example do
 
   Run the following command to examples of asking for concealed input
   ```
-  mix run -e "Prompt.Example.password()" 
+  mix run -e "Prompt.IO.Examples.password()" 
   ```
   """
   def password do
@@ -56,7 +56,7 @@ defmodule Prompt.Example do
 
   Run the following command to see an example of a single select
   ```
-  mix run -e "Prompt.Example.single_select()" 
+  mix run -e "Prompt.IO.Examples.single_select()" 
   ```
   """
   def single_select do
@@ -80,7 +80,7 @@ defmodule Prompt.Example do
 
   Run the following command to see an example of multi-select
   ```
-  mix run -e "Prompt.Example.multi_select()" 
+  mix run -e "Prompt.IO.Examples.multi_select()" 
   ```
   """
   def multi_select do
@@ -119,7 +119,7 @@ defmodule Prompt.Example do
 
   Run the following command to see an examples of the display function
   ```
-  mix run -e "Prompt.Example.display()" 
+  mix run -e "Prompt.IO.Examples.display()" 
   ```
   """
   @spec display :: none() | no_return()
@@ -154,7 +154,7 @@ defmodule Prompt.Example do
     display([:bright, "password being displayed"])
 
     _ = Prompt.text("Press [Enter] to turn off the alt buffer", trim: true)
-    display(Prompt.ANSI.alt_screen_buffer_off())
+    display(Prompt.IO.ANSI.alt_screen_buffer_off())
 
     display("You can add any `IO.ANSI` escape codes when displaying")
     display(["Current terminal width:", :bright, " #{Prompt.width()}"])

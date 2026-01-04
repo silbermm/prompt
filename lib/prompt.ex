@@ -32,6 +32,9 @@ defmodule Prompt do
   ## Advanced usage
   See `Prompt.Router`
 
+  ## Examples
+  See `Prompt.IO.Examples`
+
   ## Building for Distribution
 
   There are a couple of different options for building a binary ready for distributing. Which ever approach you decide to use, you'll probably want to keep the docs instead of stripping them.
@@ -552,8 +555,7 @@ defmodule Prompt do
     case NimbleOptions.validate(opts, validation) do
       {:ok, options} ->
         io.(options)
-        |> Prompt.IO.display()
-        |> Prompt.IO.evaluate()
+        |> Prompt.IO.exec()
 
       {:error, err} ->
         display(err.message, error: true)

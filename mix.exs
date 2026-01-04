@@ -60,9 +60,7 @@ defmodule Prompt.MixProject do
         "Output Functions": &(&1[:section] == :output)
       ],
       nest_modules_by_prefix: [
-        Prompt,
-        Prompt.Command,
-        Prompt.Position
+        Prompt.IO
       ]
     ]
   end

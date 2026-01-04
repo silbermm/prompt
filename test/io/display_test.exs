@@ -29,7 +29,7 @@ defmodule Prompt.IO.DisplayTest do
 
     [:bright, visible_content]
     |> Display.new(trim: true, position: :left)
-    |> Prompt.IO.display()
+    |> Prompt.IO.Terminal.display()
   end
 
   test "when background color is set, then the ANSI escape sequence is printed" do
@@ -55,7 +55,7 @@ defmodule Prompt.IO.DisplayTest do
 
     [:bright, visible_content]
     |> Display.new(trim: true, position: :left, background_color: :magenta)
-    |> Prompt.IO.display()
+    |> Prompt.IO.Terminal.display()
   end
 
   describe "when printing on the right" do
@@ -93,7 +93,7 @@ defmodule Prompt.IO.DisplayTest do
 
       [:bright, rightside_visible_content]
       |> Display.new(position: :right, trim: false)
-      |> Prompt.IO.display()
+      |> Prompt.IO.Terminal.display()
     end
   end
 
@@ -132,7 +132,7 @@ defmodule Prompt.IO.DisplayTest do
 
       [unquote(escape_code), rightside_visible_content]
       |> Display.new(position: :right, trim: false)
-      |> Prompt.IO.display()
+      |> Prompt.IO.Terminal.display()
     end
   end
 end

@@ -1,4 +1,4 @@
-defmodule Prompt.ANSI do
+defmodule Prompt.IO.ANSI do
   @moduledoc """
   Some common ANSI codes for the terminal.
   """

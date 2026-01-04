@@ -52,30 +52,28 @@ defmodule Prompt.IO.Password do
 
     def evaluate(_password) do
       # case read(:stdio, :line) do
-      try do
-        case (Prompt.raw_mode_supported?() && :io.get_password()) || read(:stdio, :line) do
-          :eof ->
-            Prompt.IO.write(IO.ANSI.reset())
-            :error
+      case (Prompt.raw_mode_supported?() && :io.get_password()) || read(:stdio, :line) do
+        :eof ->
+          Prompt.IO.write(IO.ANSI.reset())
+          :error
 
-          {:error, _reason} ->
-            Prompt.IO.write(IO.ANSI.reset())
-            :error
+        {:error, _reason} ->
+          Prompt.IO.write(IO.ANSI.reset())
+          :error
 
-          answer when is_binary(answer) ->
-            Prompt.IO.write(IO.ANSI.reset())
-            String.trim(answer)
+        answer when is_binary(answer) ->
+          Prompt.IO.write(IO.ANSI.reset())
+          String.trim(answer)
 
-          answer when is_list(answer) ->
-            Prompt.IO.write(IO.ANSI.reset())
+        answer when is_list(answer) ->
+          Prompt.IO.write(IO.ANSI.reset())
 
-            answer
-            |> IO.chardata_to_string()
-            |> String.trim()
-        end
-      after
-        Prompt.raw_mode_supported?() && :shell.start_interactive({:noshell, :cooked})
+          answer
+          |> IO.chardata_to_string()
+          |> String.trim()
       end
+    after
+      Prompt.raw_mode_supported?() && :shell.start_interactive({:noshell, :cooked})
     end
   end
 end

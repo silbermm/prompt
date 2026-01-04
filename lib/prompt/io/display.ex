@@ -4,7 +4,7 @@ defmodule Prompt.IO.Display do
   alias __MODULE__
 
   import IO, only: [read: 2]
-  import Prompt.ANSI
+  import Prompt.IO.ANSI
 
   @type t() :: %Display{
           content: list(),
@@ -58,7 +58,7 @@ defmodule Prompt.IO.Display do
 
       display =
         if display.alt_buffer,
-          do: Display.add_content(display, Prompt.ANSI.alt_screen_buffer_on()),
+          do: Display.add_content(display, Prompt.IO.ANSI.alt_screen_buffer_on()),
           else: display
 
       display =

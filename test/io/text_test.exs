@@ -19,7 +19,7 @@ defmodule Prompt.IO.TextTest do
 
     visible_content
     |> Text.new(trim: true)
-    |> Prompt.IO.display()
+    |> Prompt.IO.Terminal.display()
   end
 
   test "when trim is false, then the newline is printed" do
@@ -39,7 +39,7 @@ defmodule Prompt.IO.TextTest do
 
     visible_content
     |> Text.new(trim: false)
-    |> Prompt.IO.display()
+    |> Prompt.IO.Terminal.display()
   end
 
   test "when background color is set, then the ANSI escape sequence is printed" do
@@ -61,6 +61,6 @@ defmodule Prompt.IO.TextTest do
 
     visible_content
     |> Text.new(trim: false, background_color: :magenta)
-    |> Prompt.IO.display()
+    |> Prompt.IO.Terminal.display()
   end
 end
