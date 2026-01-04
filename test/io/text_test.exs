@@ -1,7 +1,9 @@
 defmodule Prompt.IO.TextTest do
   use ExUnit.Case, async: true
 
+  alias Prompt.IO.Terminal
   alias Prompt.IO.Text
+
   import Mox
   setup :verify_on_exit!
 
@@ -19,7 +21,7 @@ defmodule Prompt.IO.TextTest do
 
     visible_content
     |> Text.new(trim: true)
-    |> Prompt.IO.Terminal.display()
+    |> Terminal.display()
   end
 
   test "when trim is false, then the newline is printed" do
@@ -39,7 +41,7 @@ defmodule Prompt.IO.TextTest do
 
     visible_content
     |> Text.new(trim: false)
-    |> Prompt.IO.Terminal.display()
+    |> Terminal.display()
   end
 
   test "when background color is set, then the ANSI escape sequence is printed" do
@@ -61,6 +63,6 @@ defmodule Prompt.IO.TextTest do
 
     visible_content
     |> Text.new(trim: false, background_color: :magenta)
-    |> Prompt.IO.Terminal.display()
+    |> Terminal.display()
   end
 end

@@ -2,6 +2,7 @@ defmodule Prompt.IO.PasswordTest do
   use ExUnit.Case, async: true
 
   alias Prompt.IO.Password
+  alias Prompt.IO.Terminal
 
   import Mox
   setup :verify_on_exit!
@@ -25,7 +26,7 @@ defmodule Prompt.IO.PasswordTest do
 
     visible_content
     |> Password.new(background_color: :magenta)
-    |> Prompt.IO.Terminal.display()
+    |> Terminal.display()
   end
 
   test "when text color is set, then the ANSI escape sequence is printed" do
@@ -51,6 +52,6 @@ defmodule Prompt.IO.PasswordTest do
 
     visible_content
     |> Password.new(color: :magenta)
-    |> Prompt.IO.Terminal.display()
+    |> Terminal.display()
   end
 end

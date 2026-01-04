@@ -3,9 +3,10 @@ defmodule Prompt.IO.Choice do
 
   alias __MODULE__
   alias IO.ANSI
-  import IO, only: [write: 1, read: 2]
+  import IO, only: [read: 2]
 
   @type t :: %Choice{
+          content: list(),
           default_answer: atom(),
           question: binary(),
           custom: any(),
@@ -15,6 +16,7 @@ defmodule Prompt.IO.Choice do
         }
 
   defstruct [
+    :content,
     :default_answer,
     :question,
     :custom,
@@ -27,8 +29,15 @@ defmodule Prompt.IO.Choice do
   def new(question, custom, options) do
     [{k, _} | _rest] = custom
 
+    background_color =
+      options
+      |> Keyword.get(:background_color)
+      |> Prompt.IO.background_color()
+
     %Choice{
+      content: [:reset],
       color: Keyword.get(options, :color, IO.ANSI.default_color()),
+      background_color: background_color,
       trim: Keyword.get(options, :trim),
       default_answer: Keyword.get(options, :default_answer, k),
       question: question,
@@ -36,20 +45,26 @@ defmodule Prompt.IO.Choice do
     }
   end
 
+  def add_content(%Choice{content: content} = choice, to_add),
+    do: %{choice | content: content ++ [to_add]}
+
   defimpl Prompt.IO.Terminal do
     def display(choice) do
       _ = Prompt.raw_mode_supported?() && :shell.start_interactive({:noshell, :cooked})
 
-      [
-        :reset,
-        background_color(choice),
-        choice.color,
-        "#{choice.question} #{choice_text(choice.custom, choice.default_answer)} ",
-        :reset,
-        without_newline(choice.trim)
-      ]
+      choice =
+        choice
+        |> Choice.add_content([
+          choice.background_color,
+          choice.color,
+          "#{choice.question} #{choice_text(choice.custom, choice.default_answer)} ",
+          :reset
+        ])
+        |> maybe_with_newline()
+
+      choice.content
       |> ANSI.format()
-      |> write()
+      |> Prompt.IO.write()
 
       choice
     end
@@ -92,14 +107,7 @@ defmodule Prompt.IO.Choice do
       end
     end
 
-    defp background_color(display) do
-      case display.background_color do
-        nil -> ANSI.default_background()
-        res -> String.to_atom("#{Atom.to_string(res)}_background")
-      end
-    end
-
-    defp without_newline(true), do: ""
-    defp without_newline(false), do: "\n"
+    defp maybe_with_newline(%Choice{trim: true} = choice), do: choice
+    defp maybe_with_newline(choice), do: Choice.add_content(choice, "\n")
   end
 end

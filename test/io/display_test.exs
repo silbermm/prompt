@@ -2,6 +2,7 @@ defmodule Prompt.IO.DisplayTest do
   use ExUnit.Case, async: true
 
   alias Prompt.IO.Display
+  alias Prompt.IO.Terminal
   import Mox
 
   setup :verify_on_exit!
@@ -29,7 +30,7 @@ defmodule Prompt.IO.DisplayTest do
 
     [:bright, visible_content]
     |> Display.new(trim: true, position: :left)
-    |> Prompt.IO.Terminal.display()
+    |> Terminal.display()
   end
 
   test "when background color is set, then the ANSI escape sequence is printed" do
@@ -55,7 +56,7 @@ defmodule Prompt.IO.DisplayTest do
 
     [:bright, visible_content]
     |> Display.new(trim: true, position: :left, background_color: :magenta)
-    |> Prompt.IO.Terminal.display()
+    |> Terminal.display()
   end
 
   describe "when printing on the right" do
@@ -93,7 +94,7 @@ defmodule Prompt.IO.DisplayTest do
 
       [:bright, rightside_visible_content]
       |> Display.new(position: :right, trim: false)
-      |> Prompt.IO.Terminal.display()
+      |> Terminal.display()
     end
   end
 
@@ -132,7 +133,7 @@ defmodule Prompt.IO.DisplayTest do
 
       [unquote(escape_code), rightside_visible_content]
       |> Display.new(position: :right, trim: false)
-      |> Prompt.IO.Terminal.display()
+      |> Terminal.display()
     end
   end
 end
