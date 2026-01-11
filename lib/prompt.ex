@@ -32,6 +32,9 @@ defmodule Prompt do
   ## Advanced usage
   See `Prompt.Router`
 
+  ## Examples
+  See `Prompt.IO.Examples`
+
   ## Building for Distribution
 
   There are a couple of different options for building a binary ready for distributing. Which ever approach you decide to use, you'll probably want to keep the docs instead of stripping them.
@@ -73,7 +76,6 @@ defmodule Prompt do
 
   """
   alias Prompt.IO.Choice
-  alias Prompt.IO.Confirm
   alias Prompt.IO.Display
   alias Prompt.IO.Password
   alias Prompt.IO.Select
@@ -134,7 +136,7 @@ defmodule Prompt do
   @spec confirm(String.t(), keyword()) :: :yes | :no | :error
   def confirm(question, opts \\ []) do
     run(opts, @confirm_options, fn options ->
-      Confirm.new(question, options)
+      Choice.new(question, [yes: "y", no: "n"], options)
     end)
   end
 
@@ -379,6 +381,11 @@ defmodule Prompt do
                        default: false,
                        doc:
                          "If set to true, this will mask the current line by replacing it with `#####`. Useful when showing passwords in the terminal."
+                     ],
+                     alt_buffer: [
+                       type: :boolean,
+                       default: false,
+                       doc: "Should the display on an alternative buffer?"
                      ]
                    )
 
@@ -386,7 +393,7 @@ defmodule Prompt do
   @doc """
   Writes text to the screen.
 
-  Takes a single string argument or a list of strings where each item in the list will be diplayed on a new line.
+  Takes a single string argument or a list of strings where each item in the list will be displayed on a new line.
 
 
   Supported options:
@@ -470,7 +477,6 @@ defmodule Prompt do
        Hello from the     terminal
        this  is   another row
       "
-
   """
   @spec table(list(list()), keyword()) :: :ok
   def table(matrix, opts \\ []) when is_list(matrix) do
@@ -548,8 +554,7 @@ defmodule Prompt do
     case NimbleOptions.validate(opts, validation) do
       {:ok, options} ->
         io.(options)
-        |> Prompt.IO.display()
-        |> Prompt.IO.evaluate()
+        |> Prompt.IO.exec()
 
       {:error, err} ->
         display(err.message, error: true)
@@ -568,13 +573,13 @@ defmodule Prompt do
   end
 
   @doc false
-  def width() do
+  def width do
     {:ok, columns} = :io.columns()
     columns
   end
 
   @doc false
-  def height() do
+  def height do
     {:ok, rows} = :io.rows()
     rows
   end

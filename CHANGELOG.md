@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Changed the way `display/2` handles iolists - Instead of writing each
     element in the list individually, it now passes the iolist straight through
     to the IO.write function
+  - **BREAKING:** moved `Prompt.Position` to `Prompt.IO.Position`
 
 ### Added
   - Flake with a dev shell for development

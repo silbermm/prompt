@@ -29,6 +29,8 @@ defmodule Prompt.MixProject do
     [
       {:ex_doc, ">= 0.39.3", only: :dev, runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev], runtime: false},
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
+      {:mox, "~> 1.2.0", only: [:test]},
       {:nimble_options, "~> 1.1.1"}
     ]
   end
@@ -58,9 +60,7 @@ defmodule Prompt.MixProject do
         "Output Functions": &(&1[:section] == :output)
       ],
       nest_modules_by_prefix: [
-        Prompt,
-        Prompt.Command,
-        Prompt.Position
+        Prompt.IO
       ]
     ]
   end

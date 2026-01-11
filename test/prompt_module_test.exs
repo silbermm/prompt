@@ -44,8 +44,12 @@ defmodule Example do
 end
 
 defmodule PromptModuleTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: false
   import ExUnit.CaptureIO
+
+  setup do
+    Application.put_env(:prompt, :io, IO)
+  end
 
   test "show help" do
     assert capture_io(fn ->

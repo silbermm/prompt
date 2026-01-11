@@ -1,7 +1,13 @@
-defmodule Prompt.ANSI do
+defmodule Prompt.IO.ANSI do
+  @moduledoc since: "0.11.0"
   @moduledoc """
   Some common ANSI codes for the terminal.
   """
+
+  @escape_codes ["\e", "\n", "\t"]
+
+  @doc false
+  defguard is_escape_code(bin) when bin in @escape_codes
 
   @doc """
   Show an alternative screen buffer

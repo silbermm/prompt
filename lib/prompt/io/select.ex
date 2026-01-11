@@ -89,7 +89,7 @@ defmodule Prompt.IO.Select do
     }
   end
 
-  defimpl Prompt.IO do
+  defimpl Prompt.IO.Terminal do
     @spec display(Prompt.IO.Select.t()) :: Prompt.IO.Select.t()
     def display(%Select{} = select) do
       if Prompt.raw_mode_supported?() do
@@ -220,7 +220,7 @@ defmodule Prompt.IO.Select do
       if Prompt.raw_mode_supported?() do
         case read(:stdio, 30) do
           {:error, err} ->
-            "ERR: #{IO.inspect(err)}"
+            "ERR: #{inspect(err)}"
 
           char when is_binary(char) ->
             do_evaluate(char, select)
@@ -234,7 +234,7 @@ defmodule Prompt.IO.Select do
             "ERR: reached end of file when reading input"
 
           {:error, reason} ->
-            "ERR: #{IO.inspect(reason)}"
+            "ERR: #{inspect(reason)}"
 
           answer when is_binary(answer) ->
             answer

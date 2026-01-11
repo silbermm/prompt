@@ -2,6 +2,10 @@ defmodule PromptTest do
   use ExUnit.Case
   import ExUnit.CaptureIO
 
+  setup do
+    Application.put_env(:prompt, :io, IO)
+  end
+
   describe "confirm" do
     test "handle confirm" do
       assert capture_io("y", fn ->
@@ -87,7 +91,7 @@ defmodule PromptTest do
              end) =~ "Which email?"
     end
 
-    ## TODO: Figure out how best to test these
+    # Figure out how best to test these
     # test "returns selected options(multi)" do
     #   assert capture_io("\t", fn ->
     #            result = Prompt.select("Which email?", ["t@t.com", "a@a.com"], multi: true)
@@ -120,22 +124,37 @@ defmodule PromptTest do
              end)
     end
 
+    test "validates min length - valid" do
+      assert capture_io("t@t.com", fn ->
+               result = Prompt.text("email address", min: 3)
+               assert result == "t@t.com"
+             end)
+    end
+
     test "validates max length" do
       assert capture_io("t@t.com", fn ->
                result = Prompt.text("email address", max: 3)
                assert result == :error_max
              end)
     end
-  end
 
-  describe "password" do
-    test "ask for hidden input" do
-      assert capture_io("password", fn ->
-               result = Prompt.password("Enter Password: ")
-               assert result == "password"
+    test "validates max length - valid" do
+      assert capture_io("t@t.com", fn ->
+               result = Prompt.text("email address", max: 10)
+               assert result == "t@t.com"
              end)
     end
   end
+
+  # capture_io doesn't work work 'raw' shell mode
+  # describe "password" do
+  #   test "ask for hidden input" do
+  #     assert capture_io("password\n", fn ->
+  #              result = Prompt.password("Enter Password: ")
+  #              assert result == "password"
+  #            end)
+  #   end
+  # end
 
   describe "display" do
     test "hides text on enter" do

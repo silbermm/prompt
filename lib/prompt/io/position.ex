@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-defmodule Prompt.Position do
+defmodule Prompt.IO.Position do
   @moduledoc """
   Manipulate the position of the cursor and the display of previous text.
   """
