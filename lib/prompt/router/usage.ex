@@ -124,12 +124,16 @@ defmodule Prompt.Router.Usage do
     [
       arg.doc,
       arg.in && "(one of: #{Enum.map_join(arg.in, ", ", &to_string/1)})",
-      arg.kind == :flag && arg.default != nil && "(default: #{arg.default})",
+      arg.kind == :flag && arg.default != nil && "(default: #{default_label(arg.default)})",
       arg.required && "(required)"
     ]
     |> Enum.filter(& &1)
     |> Enum.join(" ")
   end
+
+  # A default can be any term, and not every term implements String.Chars.
+  defp default_label(value) when is_binary(value), do: value
+  defp default_label(value), do: inspect(value)
 
   defp section(_title, []), do: nil
 

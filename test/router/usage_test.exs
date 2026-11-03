@@ -177,4 +177,19 @@ defmodule Prompt.Router.UsageTest do
     assert out =~ "-d, --dry-run"
     refute out =~ "dry_run"
   end
+
+  test "a default that is not String.Chars is shown with inspect" do
+    spec = %CommandSpec{
+      name: :run,
+      module: nil,
+      args: [
+        ArgSpec.new!(:env, :string, :flag, default: %{"a" => 1}),
+        ArgSpec.new!(:name, :string, :flag, default: "bob")
+      ]
+    }
+
+    out = Usage.command(:fin, ["run"], spec)
+    assert out =~ ~s[--env     (default: %{"a" => 1})]
+    assert out =~ "--name    (default: bob)"
+  end
 end
