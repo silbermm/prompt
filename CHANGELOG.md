@@ -12,10 +12,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `text` `min`/`max` now count characters instead of bytes, and the code compiles without warnings on Elixir 1.20
   - `select/3` now returns `:error` at end of input (and on a read error) instead of the string `"ERR: ..."`
 
+### Added
+  - `run/1` on routers: dispatches like `main/1` but returns the exit code instead of halting, and `use Prompt.Router, halt: false` makes `main/1` return the code too
+
 ### Changed
   - Changed the way `display/2` handles iolists - Instead of writing each
     element in the list individually, it now passes the iolist straight through
     to the IO.write function
+  - **BREAKING:** `handle_exit_value/1` returns the exit code instead of halting; `main/1` always halts unless `halt: false`
+  - `{:error, reason}` returned from a command now prints the reason to stderr
   - **BREAKING:** moved `Prompt.Position` to `Prompt.IO.Position`
   - **BREAKING:** removed `Prompt.IO.write/1`. The `Prompt.IO` callback is now `write/2` (`device`, `iodata`), matching `IO.write/2`, so custom `:io` modules must implement `write/2`
 

@@ -9,7 +9,18 @@ defmodule Prompt.Router do
 
   Then simply define your commands and arguments.
 
-  Exposes a main/1 function that is called with the command line args
+  Exposes a `main/1` function that is called with the command line args. It
+  runs the matching command and halts the VM with the command's exit code.
+
+  Exposes a `run/1` function that does the same but returns the exit code
+  instead of halting, which is what you want in tests:
+
+  ```elixir
+  assert My.CLI.run(["checkout", "--branch", "dev"]) == 0
+  ```
+
+  To have `main/1` return the exit code too, for example when it is called
+  from a release or a Mix task, use `use Prompt.Router, otp_app: :my_app, halt: false`.
 
   ## Arguments
   See `arg/3`
@@ -67,10 +78,20 @@ defmodule Prompt.Router do
   """
 
   @doc """
-  The function responsible for filtering and calling the correct command 
-  module based on command line input
+  The entry point for an escript or release. Calls `c:run/1` with the command
+  line args and then halts the VM with the returned exit code.
+
+  If the router was defined with `use Prompt.Router, halt: false`, it returns
+  the exit code instead of halting.
   """
-  @callback main([binary()]) :: no_return()
+  @callback main([binary()]) :: no_return() | non_neg_integer()
+
+  @doc """
+  Filters and calls the correct command module based on command line input and
+  returns the exit code (see `c:handle_exit_value/1`). It never halts the VM,
+  which makes it the function to call from tests.
+  """
+  @callback run([binary()]) :: non_neg_integer()
 
   @doc """
   Prints help to the screen when there is an error, or `--help` is passed as an argument. 
@@ -94,15 +115,17 @@ defmodule Prompt.Router do
   @callback version() :: non_neg_integer()
 
   @doc """
-  This function is called after the main function is done.
+  This function is called after a command is done.
 
   It does it's best to handle any value returned from a command and turn 
   it into an integer, 0 being a successful command and any non-zero being
-  an error.
+  an error. It returns the code and does not halt, `c:main/1` does that.
+
+  An `{:error, reason}` prints the reason to stderr and results in 1.
 
   Overrideable
   """
-  @callback handle_exit_value(any()) :: no_return()
+  @callback handle_exit_value(any()) :: non_neg_integer()
 
   @doc """
   Called when the flag `--completions string` is passed on the command-line.
@@ -121,6 +144,7 @@ defmodule Prompt.Router do
 
   defmacro __using__(opts) do
     app = Keyword.get(opts, :otp_app, nil)
+    halt? = Keyword.get(opts, :halt, true)
 
     # credo:disable-for-next-line Credo.Check.Refactor.LongQuoteBlocks
     quote location: :keep do
@@ -136,6 +160,17 @@ defmodule Prompt.Router do
 
       @impl true
       def main(args) do
+        code = run(args)
+
+        if unquote(halt?) do
+          System.halt(code)
+        else
+          code
+        end
+      end
+
+      @impl true
+      def run(args) do
         commands =
           __MODULE__.module_info()
           |> Keyword.get(:attributes, [])
@@ -157,7 +192,7 @@ defmodule Prompt.Router do
             handle_exit_value(version())
 
           {:completion, shell} ->
-            generate_completions(shell)
+            handle_exit_value(generate_completions(shell))
 
           {mod, data} ->
             transformed = mod.init(data)
@@ -205,20 +240,19 @@ defmodule Prompt.Router do
       @impl true
       def handle_exit_value(:ok), do: handle_exit_value(0)
 
-      def handle_exit_value({:error, _reason}) do
-        handle_exit_value(1)
+      def handle_exit_value({:error, reason}) when is_binary(reason) do
+        display(reason, color: :red, device: :stderr)
+        1
       end
 
-      def handle_exit_value(val) when is_integer(val) and val >= 0 do
-        # Prevent exiting if running from an iex console.
-        unless Code.ensure_loaded?(IEx) and IEx.started?() do
-          System.halt(val)
-        end
+      def handle_exit_value({:error, reason}) do
+        display(inspect(reason), color: :red, device: :stderr)
+        1
       end
 
-      def handle_exit_value(anything_else) do
-        handle_exit_value(2)
-      end
+      def handle_exit_value(val) when is_integer(val) and val >= 0, do: val
+
+      def handle_exit_value(_anything_else), do: 2
 
       def generate_completions("zsh") do
         commands =
