@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Changed
+  - Router commands and args are now validated `CommandSpec`/`ArgSpec` structs; an unknown option to `arg` fails compilation. Added `positional/3`, `__commands__/0`, and the `help:` option to `use Prompt.Router`
 ### Fixed
   - Cleaned up all Credo reported issues
   - `display/2` and `table/2` no longer emit cursor-movement or color escape codes when ANSI is disabled (for example when output is redirected)

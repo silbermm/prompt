@@ -77,6 +77,8 @@ defmodule Prompt.Router do
 
   """
 
+  alias Prompt.Router.ArgSpec
+
   @doc """
   The entry point for an escript or release. Calls `c:run/1` with the command
   line args and then halts the VM with the returned exit code.
@@ -145,6 +147,7 @@ defmodule Prompt.Router do
   defmacro __using__(opts) do
     app = Keyword.get(opts, :otp_app, nil)
     halt? = Keyword.get(opts, :halt, true)
+    help_text = Keyword.get(opts, :help)
 
     # credo:disable-for-next-line Credo.Check.Refactor.LongQuoteBlocks
     quote location: :keep do
@@ -157,6 +160,16 @@ defmodule Prompt.Router do
       @behaviour Prompt.Router
 
       @app unquote(app)
+      @prompt_help unquote(help_text)
+
+      @doc false
+      def __commands__ do
+        __MODULE__.module_info()
+        |> Keyword.get(:attributes, [])
+        |> Keyword.get_values(:commands)
+        |> List.flatten()
+        |> Enum.reverse()
+      end
 
       @impl true
       def main(args) do
@@ -172,10 +185,7 @@ defmodule Prompt.Router do
       @impl true
       def run(args) do
         commands =
-          __MODULE__.module_info()
-          |> Keyword.get(:attributes, [])
-          |> Keyword.get_values(:commands)
-          |> List.flatten()
+          __commands__()
 
         if commands == [] do
           raise "Please define some commands"
@@ -256,33 +266,30 @@ defmodule Prompt.Router do
 
       def generate_completions("zsh") do
         commands =
-          __MODULE__.module_info()
-          |> Keyword.get(:attributes, [])
-          |> Keyword.get_values(:commands)
-          |> List.flatten()
+          __commands__()
 
         args =
           for command <- commands, into: "" do
-            "#{command.command_name}\u005c:'' "
+            "#{command.name}\u005c:'' "
           end
 
         line = "\"1: :((#{args}))\" \\"
 
         cases =
-          for command <- commands, command.command_name != "", into: "" do
+          for command <- commands, command.name != "", into: "" do
             ~s"""
-            \t#{command.command_name})
-            \t\t_#{@app}_#{command.command_name}
+            \t#{command.name})
+            \t\t_#{@app}_#{command.name}
             \t;;
             """
           end
 
         funcs =
-          for command <- commands, command.command_name != "", into: "" do
+          for command <- commands, command.name != "", into: "" do
             ~s"""
-            function _#{@app}_#{command.command_name} {
+            function _#{@app}_#{command.name} {
             \t_arguments \\
-            \t\t#{for arg <- command.arguments, into: "" do
+            \t\t#{for arg <- command.args, into: "" do
               "\"--#{arg.name}[]\" "
             end} 
             }
@@ -392,48 +399,41 @@ defmodule Prompt.Router do
 
   defp find_in_defined_commands(defined_commands, "") do
     Enum.find(defined_commands, fn
-      %{command_name: ""} -> true
+      %{name: ""} -> true
       _ -> false
     end)
   end
 
   defp find_in_defined_commands(defined_commands, command_value) do
     Enum.find(defined_commands, fn
-      %{command_name: command_name_atom} -> command_value == to_string(command_name_atom)
+      %{name: command_name_atom} -> command_value == to_string(command_name_atom)
       _ -> false
     end)
   end
 
   defp build_parser_switches(command) do
-    Enum.map(command.arguments, &{&1.name, &1.type})
+    Enum.map(command.args, &{&1.name, &1.type})
   end
 
   defp build_parser_aliases(command) do
-    for args <- command.arguments, reduce: [] do
-      a ->
-        if Keyword.has_key?(args.options, :short) do
-          [{Keyword.get(args.options, :short), args.name} | a]
-        else
-          a
-        end
-    end
+    for %{short: short} = arg <- command.args, short != nil, do: {short, arg.name}
   end
 
   defp build_command_data(command, parsed, leftover) do
-    command.arguments
+    command.args
     |> Enum.reduce(%{}, fn arg, acc ->
       Map.put_new(acc, arg.name, Keyword.get(parsed, arg.name, default_value(arg)))
     end)
     |> Map.put_new(:leftover, leftover)
   end
 
-  defp default_value(%{type: type, options: [_ | _] = opts}),
-    do: Keyword.get(opts, :default, default_value(%{type: type}))
+  defp default_value(%{default: default}) when default != nil, do: default
+  defp default_value(%{type: type}), do: type_default(type)
 
-  defp default_value(%{type: :boolean}), do: false
-  defp default_value(%{type: :string}), do: ""
-  defp default_value(%{type: :integer}), do: nil
-  defp default_value(%{type: :float}), do: nil
+  defp type_default(:boolean), do: false
+  defp type_default(:string), do: ""
+  defp type_default(:integer), do: nil
+  defp type_default(:float), do: nil
 
   @doc """
   Name of the subcommand that is expectedaany()
@@ -444,32 +444,45 @@ defmodule Prompt.Router do
     args =
       case block do
         {:__block__, _, arguments} -> arguments
-        {:arg, _, _} = args -> [args]
+        {kind, _, _} = single when kind in [:arg, :positional] -> [single]
       end
 
     quote do
-      new_args = Enum.map(unquote(args), fn o -> o end)
-
-      res = %{
-        command_name: unquote(name),
-        module: unquote(module),
-        arguments: new_args
-      }
-
-      Module.put_attribute(__MODULE__, :commands, res)
+      Module.put_attribute(
+        __MODULE__,
+        :commands,
+        Prompt.Router.build_command!(unquote(name), unquote(module), unquote(args))
+      )
     end
   end
 
   defmacro command(name, module) do
     quote do
-      res = %{
-        command_name: unquote(name),
-        module: unquote(module),
-        arguments: []
-      }
-
-      Module.put_attribute(__MODULE__, :commands, res)
+      Module.put_attribute(
+        __MODULE__,
+        :commands,
+        Prompt.Router.build_command!(unquote(name), unquote(module), [])
+      )
     end
+  end
+
+  @doc false
+  def build_command!(name, module, args) do
+    positionals = Enum.filter(args, &(&1.kind == :positional))
+
+    case Enum.find_index(positionals, & &1.multiple) do
+      nil ->
+        :ok
+
+      idx when idx == length(positionals) - 1 ->
+        :ok
+
+      _ ->
+        raise ArgumentError,
+              "command #{inspect(name)}: a positional with multiple: true must be the last positional"
+    end
+
+    %Prompt.Router.CommandSpec{name: name, module: module, args: args}
   end
 
   @doc """
@@ -486,10 +499,30 @@ defmodule Prompt.Router do
   Available options are:
     * default - a default value if the user doesn't use this option
     * short   - an optional short argument option i.e `short: :h` would all the user to type `-h`
+    * required - the flag must be given
+    * in      - a list of allowed values
+    * doc     - a description used in help
+
+  An unknown option raises at compile time.
   """
   defmacro arg(arg_name, arg_type, opts \\ []) do
     quote do
-      %{name: unquote(arg_name), type: unquote(arg_type), options: unquote(opts)}
+      ArgSpec.new!(unquote(arg_name), unquote(arg_type), :flag, unquote(opts))
+    end
+  end
+
+  @doc """
+  Declares a positional argument of a command.
+
+  ## Options
+    * required - the argument must be given
+    * multiple - collects all remaining values, only allowed on the last positional
+    * in       - a list of allowed values
+    * doc      - a description used in help
+  """
+  defmacro positional(arg_name, arg_type, opts \\ []) do
+    quote do
+      ArgSpec.new!(unquote(arg_name), unquote(arg_type), :positional, unquote(opts))
     end
   end
 end
