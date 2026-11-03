@@ -65,8 +65,6 @@ defmodule Prompt do
   Run `MIX_ENV=prod mix release` to build the binary. This will output the usual release messages for a `mix release` command, but in the case of a CLI, it's a bit of a red herring. The binary you want to run as a CLI will be in `burrito_out/<your_app>`.
   """
 
-  import IO
-
   @typedoc """
   A keyword list of commands and implementations of `Prompt.Command`
 
@@ -317,7 +315,7 @@ defmodule Prompt do
   >   ```
   """
   @spec select(String.t(), list(String.t()) | list({String.t(), any()}), keyword()) ::
-          any() | :error
+          binary() | any() | list() | :error
   def select(display, choices, opts \\ []) do
     run(opts, @select_options, fn options ->
       Select.new(display, choices, options)
@@ -367,6 +365,11 @@ defmodule Prompt do
                        type: {:in, @colors},
                        doc:
                          "The background color. One of `#{Kernel.inspect(@colors)}`. Defaults to the terminal default."
+                     ],
+                     device: [
+                       type: {:in, [:stdio, :stderr]},
+                       default: :stdio,
+                       doc: "The IO device to write to, one of `:stdio` or `:stderr`."
                      ],
                      trim: [type: :boolean, default: false, doc: false],
                      from: [type: :atom, default: :self, doc: false],
@@ -434,6 +437,11 @@ defmodule Prompt do
                      type: {:in, @colors},
                      doc:
                        "The text color. One of `#{Kernel.inspect(@colors)}`. Defaults to the terminal default."
+                   ],
+                   device: [
+                     type: {:in, [:stdio, :stderr]},
+                     default: :stdio,
+                     doc: "The IO device to write to, one of `:stdio` or `:stderr`."
                    ]
                  )
 
@@ -483,20 +491,20 @@ defmodule Prompt do
     case NimbleOptions.validate(opts, @table_options) do
       {:ok, options} ->
         table = matrix |> build_table(options)
-        color = Keyword.get(options, :color, IO.ANSI.default_color())
+        color = Keyword.get(options, :color, :default_color)
 
         [
           :reset,
-          IO.ANSI.default_background(),
+          :default_background,
           color,
           table,
           :reset
         ]
         |> IO.ANSI.format()
-        |> write()
+        |> then(&Prompt.IO.write(Keyword.fetch!(options, :device), &1))
 
       {:error, err} ->
-        display(err.message, error: true)
+        Prompt.IO.write(:stderr, [err.message, "\n"])
         :error
     end
   end
@@ -557,7 +565,7 @@ defmodule Prompt do
         |> Prompt.IO.exec()
 
       {:error, err} ->
-        display(err.message, error: true)
+        Prompt.IO.write(:stderr, [err.message, "\n"])
         :error
     end
   end

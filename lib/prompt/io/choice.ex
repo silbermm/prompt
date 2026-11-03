@@ -39,7 +39,7 @@ defmodule Prompt.IO.Choice do
 
     %Choice{
       content: [:reset],
-      color: Keyword.get(options, :color, IO.ANSI.default_color()),
+      color: Keyword.get(options, :color, :default_color),
       background_color: background_color,
       trim: Keyword.get(options, :trim),
       default_answer: Keyword.get(options, :default_answer, k),
@@ -54,7 +54,7 @@ defmodule Prompt.IO.Choice do
 
   defimpl Prompt.IO.Terminal do
     def display(choice) do
-      _ = Prompt.raw_mode_supported?() && :shell.start_interactive({:noshell, :cooked})
+      :ok = Prompt.IO.cooked()
 
       choice =
         choice
@@ -68,7 +68,7 @@ defmodule Prompt.IO.Choice do
 
       choice.content
       |> ANSI.format()
-      |> Prompt.IO.write()
+      |> then(&Prompt.IO.write(:stdio, &1))
 
       choice
     end

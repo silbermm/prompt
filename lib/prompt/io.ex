@@ -54,21 +54,63 @@ defmodule Prompt.IO do
   """
   alias Prompt.IO.Terminal
 
-  @callback write(iolist()) :: :ok
+  @callback write(IO.device(), iodata()) :: :ok
   @doc """
-  Writes provided `iodata` to the stdout.
+  Writes provided `iodata` to the given IO `device`.
 
   This is really just a delegation to `IO.write/2`, but is useful for testing purposes.
   """
-  def write(data), do: Application.get_env(:prompt, :io, IO).write(data)
+  @spec write(IO.device(), iodata()) :: :ok
+  def write(device, data), do: Application.get_env(:prompt, :io, IO).write(device, data)
+
+  @doc """
+  Switches the terminal to cooked input, where the OS handles line editing.
+
+  Does nothing when raw mode is not supported, and never crashes: see `raw/0`.
+  """
+  @spec cooked() :: :ok
+  def cooked, do: set_input_mode(:cooked)
+
+  @doc """
+  Switches the terminal to raw input, where every key press is read as typed.
+
+  Does nothing when raw mode is not supported (OTP before 28) or when
+  `:standard_error` cannot take the `onlcr` option, for example inside
+  `ExUnit.CaptureIO.capture_io(:stderr, ...)`. Switching modes there makes
+  `user_drv` exit with `{:error, :enotsup}`, so this also catches exits.
+  """
+  @spec raw() :: :ok
+  def raw, do: set_input_mode(:raw)
+
+  defp set_input_mode(mode) do
+    if Prompt.raw_mode_supported?() and standard_error_supports_onlcr?() do
+      try do
+        _ = :shell.start_interactive({:noshell, mode})
+        :ok
+      catch
+        :exit, _reason -> :ok
+      end
+    else
+      :ok
+    end
+  end
+
+  # user_drv sets `onlcr` on :standard_error every time the mode changes and
+  # crashes if the device rejects it. Only the real standard_error reports it.
+  defp standard_error_supports_onlcr? do
+    case :io.getopts(:standard_error) do
+      opts when is_list(opts) -> Keyword.has_key?(opts, :onlcr)
+      _ -> false
+    end
+  end
 
   @doc """
   Generates the correct ANSI code for background color given a color atom
 
-  Defaults to `IO.ANSI.default_background/0`
+  Defaults to `:default_background`
   """
   @spec background_color(nil | atom()) :: atom()
-  def background_color(nil), do: IO.ANSI.default_background()
+  def background_color(nil), do: :default_background
   def background_color(res), do: String.to_atom("#{Atom.to_string(res)}_background")
 
   @doc """

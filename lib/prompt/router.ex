@@ -370,13 +370,9 @@ defmodule Prompt.Router do
     end)
   end
 
-  defp build_parser_switches(nil), do: []
-
   defp build_parser_switches(command) do
     Enum.map(command.arguments, &{&1.name, &1.type})
   end
-
-  defp build_parser_aliases(nil), do: []
 
   defp build_parser_aliases(command) do
     for args <- command.arguments, reduce: [] do

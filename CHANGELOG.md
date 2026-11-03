@@ -7,15 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Fixed
   - Cleaned up all Credo reported issues
+  - `display/2` and `table/2` no longer emit cursor-movement or color escape codes when ANSI is disabled (for example when output is redirected)
+  - An invalid option to `display/2` or `table/2` now prints the error to stderr and returns `:error` instead of recursing forever
+  - `text` `min`/`max` now count characters instead of bytes, and the code compiles without warnings on Elixir 1.20
+  - `select/3` now returns `:error` at end of input (and on a read error) instead of the string `"ERR: ..."`
 
 ### Changed
   - Changed the way `display/2` handles iolists - Instead of writing each
     element in the list individually, it now passes the iolist straight through
     to the IO.write function
   - **BREAKING:** moved `Prompt.Position` to `Prompt.IO.Position`
+  - **BREAKING:** removed `Prompt.IO.write/1`. The `Prompt.IO` callback is now `write/2` (`device`, `iodata`), matching `IO.write/2`, so custom `:io` modules must implement `write/2`
 
 ### Added
   - Flake with a dev shell for development
+  - `device:` option on `display/2` and `table/2` (`:stdio` or `:stderr`)
   - New `select` experience using Erlang 28 'raw' shell support
 
 ### Removed

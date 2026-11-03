@@ -16,7 +16,8 @@ defmodule Prompt.IO.Display do
           mask_line: bool(),
           from: atom(),
           position: :left | :right,
-          alt_buffer: boolean()
+          alt_buffer: boolean(),
+          device: :stdio | :stderr
         }
 
   defstruct [
@@ -28,7 +29,8 @@ defmodule Prompt.IO.Display do
     :mask_line,
     :from,
     :position,
-    :alt_buffer
+    :alt_buffer,
+    device: :stdio
   ]
 
   def new(txt, options) do
@@ -40,13 +42,14 @@ defmodule Prompt.IO.Display do
     %Display{
       content: [:reset],
       text: txt,
-      color: Keyword.get(options, :color, IO.ANSI.default_color()),
+      color: Keyword.get(options, :color, :default_color),
       background_color: background_color,
       mask_line: Keyword.get(options, :mask_line),
       trim: Keyword.get(options, :trim),
       from: Keyword.get(options, :from),
       position: Keyword.get(options, :position),
-      alt_buffer: Keyword.get(options, :alt_buffer, false)
+      alt_buffer: Keyword.get(options, :alt_buffer, false),
+      device: Keyword.get(options, :device, :stdio)
     }
   end
 
@@ -55,7 +58,7 @@ defmodule Prompt.IO.Display do
 
   defimpl Prompt.IO.Terminal do
     def display(display) do
-      _ = Prompt.raw_mode_supported?() && :shell.start_interactive({:noshell, :cooked})
+      _ = display.device == :stdio && Prompt.IO.cooked()
 
       display =
         if display.alt_buffer,
@@ -64,7 +67,7 @@ defmodule Prompt.IO.Display do
 
       display =
         display
-        |> Display.add_content([position(display.position, display.text)])
+        |> Display.add_content([maybe_position(display.position, display.text)])
         |> Display.add_content([
           display.background_color,
           display.color,
@@ -79,7 +82,7 @@ defmodule Prompt.IO.Display do
 
       display.content
       |> IO.ANSI.format()
-      |> Prompt.IO.write()
+      |> then(&Prompt.IO.write(display.device, &1))
 
       display
     end
@@ -94,6 +97,10 @@ defmodule Prompt.IO.Display do
       end
 
       :ok
+    end
+
+    defp maybe_position(position, text) do
+      if IO.ANSI.enabled?(), do: position(position, text), else: []
     end
 
     defp maybe_with_newline(%Display{trim: true} = display), do: display

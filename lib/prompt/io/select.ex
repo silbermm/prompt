@@ -18,7 +18,7 @@ defmodule Prompt.IO.Select do
 
   alias __MODULE__
   alias IO.ANSI
-  import IO, only: [write: 1, read: 2]
+  import IO, only: [read: 2]
 
   @typep color ::
            :black
@@ -37,6 +37,8 @@ defmodule Prompt.IO.Select do
            | :red
            | :white
            | :yellow
+           | :default_color
+           | :default_background
 
   @type t :: %Select{
           color: color(),
@@ -74,7 +76,7 @@ defmodule Prompt.IO.Select do
     select_indicator = Keyword.get(opts, :select_indicator, ">")
 
     %Select{
-      color: Keyword.get(opts, :color, ANSI.default_color()),
+      color: Keyword.get(opts, :color, :default_color),
       background_color: Keyword.get(opts, :background_color),
       multi: Keyword.get(opts, :multi, false),
       trim: Keyword.get(opts, :trim, false),
@@ -100,7 +102,7 @@ defmodule Prompt.IO.Select do
     end
 
     defp interactive_select(select) do
-      _ = :shell.start_interactive({:noshell, :raw})
+      :ok = Prompt.IO.raw()
 
       [
         :reset,
@@ -111,7 +113,7 @@ defmodule Prompt.IO.Select do
         "\n"
       ]
       |> ANSI.format()
-      |> write()
+      |> then(&Prompt.IO.write(:stdio, &1))
 
       for {choice, number} <- Enum.with_index(select.choices) do
         [
@@ -124,7 +126,7 @@ defmodule Prompt.IO.Select do
           select_text(choice)
         ]
         |> ANSI.format()
-        |> write()
+        |> then(&Prompt.IO.write(:stdio, &1))
       end
 
       [
@@ -132,7 +134,7 @@ defmodule Prompt.IO.Select do
         ANSI.cursor_left(2000)
       ]
       |> ANSI.format()
-      |> write()
+      |> then(&Prompt.IO.write(:stdio, &1))
 
       select
     end
@@ -150,7 +152,7 @@ defmodule Prompt.IO.Select do
           legacy_select_text(choice, number)
         ]
         |> ANSI.format()
-        |> write()
+        |> then(&Prompt.IO.write(:stdio, &1))
       end
 
       [
@@ -162,7 +164,7 @@ defmodule Prompt.IO.Select do
         "#{select.display} [1-#{Enum.count(select.choices)}]:"
       ]
       |> ANSI.format()
-      |> write()
+      |> then(&Prompt.IO.write(:stdio, &1))
 
       select
     end
@@ -215,26 +217,26 @@ defmodule Prompt.IO.Select do
 
     defp print_selector(%Select{multi: false}), do: "  "
 
-    @spec evaluate(Prompt.IO.Select.t()) :: binary() | list(binary)
+    @spec evaluate(Prompt.IO.Select.t()) :: binary() | list(binary) | :error
     def evaluate(%Select{} = select) do
       if Prompt.raw_mode_supported?() do
         case read(:stdio, 30) do
-          {:error, err} ->
-            "ERR: #{inspect(err)}"
+          {:error, _err} ->
+            :error
 
           char when is_binary(char) ->
             do_evaluate(char, select)
 
           :eof ->
-            "ERR: reached end of file when reading input"
+            :error
         end
       else
         case read(:stdio, :line) do
           :eof ->
-            "ERR: reached end of file when reading input"
+            :error
 
-          {:error, reason} ->
-            "ERR: #{inspect(reason)}"
+          {:error, _reason} ->
+            :error
 
           answer when is_binary(answer) ->
             answer
@@ -281,7 +283,7 @@ defmodule Prompt.IO.Select do
             ANSI.cursor_left(1000)
           ]
           |> ANSI.format()
-          |> write()
+          |> then(&Prompt.IO.write(:stdio, &1))
 
           answer
       end
@@ -298,7 +300,7 @@ defmodule Prompt.IO.Select do
         end
 
       if Enum.any?(answer_data, fn a -> a == nil end) do
-        "ERR: invalid answer"
+        :error
       else
         select = %Select{select | answer: answer_data}
         remainder = length(select.choices) - select.current_choice
@@ -310,11 +312,13 @@ defmodule Prompt.IO.Select do
           ANSI.cursor_left(1000)
         ]
         |> ANSI.format()
-        |> write()
+        |> then(&Prompt.IO.write(:stdio, &1))
 
         answer_data
       end
     end
+
+    defp do_evaluate("\x04", _select), do: :error
 
     defp do_evaluate(choice, select) when choice in ["\e[A", "k"] do
       cond do
@@ -336,7 +340,7 @@ defmodule Prompt.IO.Select do
             ANSI.cursor_left(1000)
           ]
           |> ANSI.format()
-          |> write()
+          |> then(&Prompt.IO.write(:stdio, &1))
 
           select = %{select | current_choice: select.current_choice - 1}
           previous_choice = Enum.at(select.choices, select.current_choice)
@@ -353,7 +357,7 @@ defmodule Prompt.IO.Select do
             ANSI.cursor_left(1000)
           ]
           |> ANSI.format()
-          |> write()
+          |> then(&Prompt.IO.write(:stdio, &1))
 
           evaluate(select)
       end
@@ -380,7 +384,7 @@ defmodule Prompt.IO.Select do
             ANSI.cursor_left(1000)
           ]
           |> ANSI.format()
-          |> write()
+          |> then(&Prompt.IO.write(:stdio, &1))
 
           select = %{select | current_choice: select.current_choice + 1}
           next_choice = Enum.at(select.choices, select.current_choice)
@@ -397,7 +401,7 @@ defmodule Prompt.IO.Select do
             ANSI.cursor_left(1000)
           ]
           |> ANSI.format()
-          |> write()
+          |> then(&Prompt.IO.write(:stdio, &1))
 
           evaluate(select)
       end
@@ -415,7 +419,7 @@ defmodule Prompt.IO.Select do
             " ",
             ANSI.cursor_left()
           ]
-          |> write
+          |> then(&Prompt.IO.write(:stdio, &1))
 
           evaluate(updated_select)
         else
@@ -428,7 +432,7 @@ defmodule Prompt.IO.Select do
             "#{select.select_indicator}",
             ANSI.cursor_left()
           ]
-          |> write
+          |> then(&Prompt.IO.write(:stdio, &1))
 
           evaluate(select)
         end
@@ -445,7 +449,7 @@ defmodule Prompt.IO.Select do
     defp legacy_select_text({dis, _}, number), do: "[#{number + 1}] #{dis}"
     defp legacy_select_text(choice, number), do: "[#{number + 1}] #{choice}"
 
-    defp show_select_error(select) do
+    defp show_select_error(%Select{} = select) do
       text =
         if select.multi do
           "Enter numbers from 1-#{Enum.count(select.choices)} seperated by spaces: "
@@ -460,10 +464,10 @@ defmodule Prompt.IO.Select do
         text
       ]
       |> ANSI.format()
-      |> write
+      |> then(&Prompt.IO.write(:stdio, &1))
 
       # reset error
-      %{select | error: nil}
+      %Select{select | error: nil}
     end
 
     defp evaluate_choice_answer(answers, %Select{multi: true} = select) do
@@ -505,7 +509,7 @@ defmodule Prompt.IO.Select do
 
     defp background_color(select) do
       case select.background_color do
-        nil -> ANSI.default_background()
+        nil -> :default_background
         res -> String.to_atom("#{Atom.to_string(res)}_background")
       end
     end

@@ -2,9 +2,14 @@ when:
   - event: pull_request
     evaluate: 'not (CI_COMMIT_MESSAGE contains "SKIPCI")'
 
-# Runs inside the flake's `ci` dev shell so CI uses exactly the Erlang and
-# Elixir pinned in flake.lock. One step, because every step is a fresh
-# container and would download the toolchain again.
+matrix:
+  SHELL_NAME:
+    - ci
+    - ci-next
+
+# Runs inside the flake's `ci` and `ci-next` dev shells so CI uses exactly the
+# Erlang and Elixir pinned in flake.lock. One step, because every step is a
+# fresh container and would download the toolchain again.
 steps:
   - name: check
     image: nixos/nix
@@ -12,7 +17,7 @@ steps:
       NIX_CONFIG: "experimental-features = nix-command flakes"
     commands:
       - |
-        nix develop path:.#ci --command sh -ec '
+        nix develop path:.#${SHELL_NAME} --command sh -ec '
           mix local.hex --force
           mix local.rebar --force
           mix deps.get

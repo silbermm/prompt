@@ -1,9 +1,38 @@
 defmodule PromptTest do
   use ExUnit.Case
   import ExUnit.CaptureIO
+  alias Prompt.IO.{Select, Terminal}
 
   setup do
     Application.put_env(:prompt, :io, IO)
+  end
+
+  test "display with an invalid option returns :error instead of hanging" do
+    output = capture_io(:stderr, fn -> assert Prompt.display("x", bogus: 1) == :error end)
+    assert output =~ "unknown options [:bogus]"
+  end
+
+  test "display writes to stderr when device is :stderr" do
+    assert capture_io(:stderr, fn -> Prompt.display("warn", device: :stderr) end) =~ "warn"
+  end
+
+  describe "stdout writes nested in capture_io(:stderr)" do
+    # Switching input mode while stderr is captured made user_drv exit with :enotsup.
+    test "display does not crash" do
+      stderr =
+        capture_io(:stderr, fn ->
+          assert capture_io(fn -> assert Prompt.display("x") == :ok end) =~ "x"
+        end)
+
+      assert stderr == ""
+    end
+
+    test "text and choice do not crash" do
+      capture_io(:stderr, fn ->
+        capture_io("hi\n", fn -> assert Prompt.text("name") == "hi" end)
+        capture_io("y\n", fn -> assert Prompt.confirm("ok?") == :yes end)
+      end)
+    end
   end
 
   describe "confirm" do
@@ -110,6 +139,14 @@ defmodule PromptTest do
   end
 
   describe "text" do
+    test "min counts characters, not bytes" do
+      capture_io("héé", fn -> assert Prompt.text("name", min: 3) == "héé" end)
+    end
+
+    test "max counts characters, not bytes" do
+      capture_io("héé", fn -> assert Prompt.text("name", max: 3) == "héé" end)
+    end
+
     test "returns input" do
       assert capture_io("t@t.com", fn ->
                result = Prompt.text("email address")
@@ -214,6 +251,34 @@ defmodule PromptTest do
                  ],
                  [["+-------", "+------", "+---------", "+-----------"], "+", "\n"]
                ]
+    end
+  end
+
+  describe "end of input" do
+    test "text returns :error at end of input",
+      do: capture_io("", fn -> assert Prompt.text("q") == :error end)
+
+    test "password returns :error at end of input",
+      do: capture_io("", fn -> assert Prompt.password("q") == :error end)
+
+    test "confirm returns :error at end of input",
+      do: capture_io("", fn -> assert Prompt.confirm("q") == :error end)
+
+    test "choice returns :error at end of input",
+      do: capture_io("", fn -> assert Prompt.choice("q", a: "a") == :error end)
+
+    test "select returns :error at end of input",
+      do: capture_io("", fn -> assert Prompt.select("q", ["one", "two"]) == :error end)
+
+    test "select returns :error on Ctrl-D" do
+      capture_io("\x04", fn -> assert Prompt.select("q", ["one", "two"]) == :error end)
+    end
+
+    test "multi select Enter with an unresolvable choice returns :error" do
+      base = Select.new("q", [{"a", nil}], multi: true)
+      select = %{base | selected_choices: MapSet.new([0])}
+
+      capture_io("\r", fn -> assert Terminal.evaluate(select) == :error end)
     end
   end
 end

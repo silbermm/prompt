@@ -28,8 +28,8 @@
       let
         pkgs = nixpkgs.legacyPackages.${system};
         expert = expertpkg.packages.${system}.expert;
-        erlang = pkgs.erlang_28;
-        elixir = pkgs.beam.packages.erlang_28.elixir_1_19;
+        erlang = pkgs.beam28Packages.erlang;
+        elixir = pkgs.beam28Packages.elixir_1_19;
         # Claude Code and opencode in a bubblewrap jail. The jail mounts the
         # current directory, so the agents need the toolchain on their PATH and
         # the project-local mix and hex variables from the shellHook below.
@@ -46,8 +46,10 @@
             (c.try-fwd-env "ERL_AFLAGS")
           ];
         };
+        erlangNext = pkgs.beam29Packages.erlang;
+        elixirNext = pkgs.beam29Packages.elixir_1_20;
         # Keep mix, hex, and the erlang shell history local to this checkout.
-        # Shared by the default and ci shells.
+        # Shared by the default, ci, and ci-next shells.
         mixShellHook = ''
           # limit mix to current project
           mkdir -p .nix-mix
@@ -87,6 +89,15 @@
           packages = [
             erlang
             elixir
+          ];
+          shellHook = mixShellHook;
+        };
+
+        # Same as ci, on the next Erlang and Elixir, to catch 1.20 breakage early.
+        devShells.ci-next = pkgs.mkShell {
+          packages = [
+            erlangNext
+            elixirNext
           ];
           shellHook = mixShellHook;
         };

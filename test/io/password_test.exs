@@ -8,7 +8,7 @@ defmodule Prompt.IO.PasswordTest do
   setup :verify_on_exit!
 
   test "when background color is set, then the ANSI escape sequence is printed" do
-    expect(Prompt.IO.Mock, :write, fn io ->
+    expect(Prompt.IO.Mock, :write, fn :stdio, io ->
       assert IO.iodata_to_binary(io) == "\e[0m\e[45m\e[39mEnter Password: \e[8m\e[0m"
       :ok
     end)
@@ -19,7 +19,7 @@ defmodule Prompt.IO.PasswordTest do
   end
 
   test "when text color is set, then the ANSI escape sequence is printed" do
-    expect(Prompt.IO.Mock, :write, fn io ->
+    expect(Prompt.IO.Mock, :write, fn :stdio, io ->
       assert IO.iodata_to_binary(io) == "\e[0m\e[49m\e[35mEnter Password: \e[8m\e[0m"
       :ok
     end)

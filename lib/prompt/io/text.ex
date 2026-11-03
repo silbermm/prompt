@@ -27,7 +27,7 @@ defmodule Prompt.IO.Text do
     %Text{
       content: [:reset],
       question: question,
-      color: Keyword.get(options, :color, IO.ANSI.default_color()),
+      color: Keyword.get(options, :color, :default_color),
       background_color: background_color,
       trim: Keyword.get(options, :trim),
       min: Keyword.get(options, :min, 0),
@@ -40,7 +40,7 @@ defmodule Prompt.IO.Text do
 
   defimpl Prompt.IO.Terminal do
     def display(text) do
-      _ = Prompt.raw_mode_supported?() && :shell.start_interactive({:noshell, :cooked})
+      :ok = Prompt.IO.cooked()
 
       text =
         text
@@ -54,7 +54,7 @@ defmodule Prompt.IO.Text do
 
       text.content
       |> ANSI.format()
-      |> Prompt.IO.write()
+      |> then(&Prompt.IO.write(:stdio, &1))
 
       text
     end
@@ -92,32 +92,10 @@ defmodule Prompt.IO.Text do
     def maybe_with_newline(%{trim: true} = text), do: text
     def maybe_with_newline(text), do: Text.add_content(text, "\n")
 
-    defp determine_min(answer, %Text{min: min}) when min > 0 do
-      min_size = min * 8
-
-      case answer do
-        <<_val::bitstring-size(min_size), _rest::binary>> ->
-          true
-
-        _ ->
-          false
-      end
-    end
-
+    defp determine_min(answer, %Text{min: min}) when min > 0, do: String.length(answer) >= min
     defp determine_min(_answer, %Text{}), do: true
 
-    defp determine_max(answer, %Text{max: max}) when max > 0 do
-      max_size = max * 8
-
-      case answer do
-        <<_val::bitstring-size(max_size), rest::binary>> when rest != "" ->
-          false
-
-        _ ->
-          true
-      end
-    end
-
+    defp determine_max(answer, %Text{max: max}) when max > 0, do: String.length(answer) <= max
     defp determine_max(_answer, %Text{}), do: true
   end
 end

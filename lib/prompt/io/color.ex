@@ -19,6 +19,8 @@ defmodule Prompt.IO.Color do
           | :red
           | :white
           | :yellow
+          | :default_color
+          | :default_background
 
   def all do
     [

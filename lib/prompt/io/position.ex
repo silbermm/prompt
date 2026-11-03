@@ -20,7 +20,6 @@ defmodule Prompt.IO.Position do
   """
 
   alias IO.ANSI
-  import IO
 
   @doc """
   Clears the content from the previous `number` of lines
@@ -30,7 +29,7 @@ defmodule Prompt.IO.Position do
   def clear_lines(number) do
     1..number
     |> Enum.reduce("", &build_clear_lines_string/2)
-    |> write
+    |> then(&Prompt.IO.write(:stdio, &1))
   end
 
   @spec _clear_up :: String.t()
@@ -54,9 +53,9 @@ defmodule Prompt.IO.Position do
         ANSI.reset() <> "\n"
 
     if relative_line - 1 <= 0 do
-      write(line_output)
+      Prompt.IO.write(:stdio, line_output)
     else
-      write(line_output <> ANSI.cursor_down(relative_line - 1))
+      Prompt.IO.write(:stdio, line_output <> ANSI.cursor_down(relative_line - 1))
     end
   end
 end

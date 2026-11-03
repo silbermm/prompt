@@ -22,7 +22,7 @@ defmodule Prompt.IO.Password do
     %Password{
       content: [:reset],
       text: text,
-      color: Keyword.get(options, :color, IO.ANSI.default_color()),
+      color: Keyword.get(options, :color, :default_color),
       background_color: background_color
     }
   end
@@ -32,7 +32,7 @@ defmodule Prompt.IO.Password do
 
   defimpl Prompt.IO.Terminal do
     def display(password) do
-      _ = Prompt.raw_mode_supported?() && :shell.start_interactive({:noshell, :raw})
+      :ok = Prompt.IO.raw()
 
       password =
         Password.add_content(password, [
@@ -45,7 +45,7 @@ defmodule Prompt.IO.Password do
 
       password.content
       |> IO.ANSI.format()
-      |> Prompt.IO.write()
+      |> then(&Prompt.IO.write(:stdio, &1))
 
       password
     end
@@ -54,26 +54,26 @@ defmodule Prompt.IO.Password do
       # case read(:stdio, :line) do
       case (Prompt.raw_mode_supported?() && :io.get_password()) || read(:stdio, :line) do
         :eof ->
-          Prompt.IO.write(IO.ANSI.reset())
+          Prompt.IO.write(:stdio, IO.ANSI.reset())
           :error
 
         {:error, _reason} ->
-          Prompt.IO.write(IO.ANSI.reset())
+          Prompt.IO.write(:stdio, IO.ANSI.reset())
           :error
 
         answer when is_binary(answer) ->
-          Prompt.IO.write(IO.ANSI.reset())
+          Prompt.IO.write(:stdio, IO.ANSI.reset())
           String.trim(answer)
 
         answer when is_list(answer) ->
-          Prompt.IO.write(IO.ANSI.reset())
+          Prompt.IO.write(:stdio, IO.ANSI.reset())
 
           answer
           |> IO.chardata_to_string()
           |> String.trim()
       end
     after
-      Prompt.raw_mode_supported?() && :shell.start_interactive({:noshell, :cooked})
+      Prompt.IO.cooked()
     end
   end
 end
