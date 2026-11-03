@@ -40,7 +40,8 @@ defmodule Prompt.Router.RunTest do
     stderr = for {:stderr, out} <- writes, into: "", do: out
     stdout = for {:stdio, out} <- writes, into: "", do: out
     assert stderr =~ "missing required argument text"
-    refute stdout =~ "missing required argument"
+    assert stderr =~ "Usage: prompt search <text>"
+    assert stdout == ""
   end
 
   defp collect_writes(acc) do
@@ -72,5 +73,43 @@ defmodule Prompt.Router.RunTest do
       end)
 
     assert stderr =~ "missing required argument text"
+  end
+
+  test "an unknown command prints the reason and router usage to stderr and returns 1" do
+    Application.put_env(:prompt, :io, IO)
+
+    stderr =
+      capture_io(:stderr, fn ->
+        assert capture_io(fn -> assert RunRouter.run(["nope"]) == 1 end) == ""
+      end)
+
+    assert stderr =~ "invalid flag or command"
+    assert stderr =~ "Usage: prompt <command> [options]"
+  end
+
+  test "--help prints usage to stdout and returns 0" do
+    Application.put_env(:prompt, :io, IO)
+
+    stderr =
+      capture_io(:stderr, fn ->
+        assert capture_io(fn -> assert RunRouter.run(["--help"]) == 0 end) =~
+                 "Usage: prompt <command> [options]"
+
+        assert capture_io(fn -> assert RunRouter.run(["search", "--help"]) == 0 end) =~
+                 "Usage: prompt search <text>"
+      end)
+
+    assert stderr == ""
+  end
+
+  test "an unsupported completion shell is reported on stderr" do
+    Application.put_env(:prompt, :io, IO)
+
+    stderr =
+      capture_io(:stderr, fn ->
+        assert capture_io(fn -> assert RunRouter.run(["--completion", "tcsh"]) == 1 end) == ""
+      end)
+
+    assert stderr =~ "Completions for tcsh are not supported"
   end
 end

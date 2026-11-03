@@ -137,7 +137,7 @@ defmodule Prompt.Router.UsageTest do
     assert out =~ "Helps users define and build command line commands."
   end
 
-  test "a bad value prints the reason to stderr, then the command usage, and exits 1" do
+  test "a bad value prints the reason and the command usage to stderr and exits 1" do
     old = Application.get_env(:prompt, :io)
     on_exit(fn -> Application.put_env(:prompt, :io, old) end)
     Application.put_env(:prompt, :io, Prompt.IO.Mock)
@@ -154,8 +154,8 @@ defmodule Prompt.Router.UsageTest do
     stdout = for {:stdio, out} <- writes, into: "", do: out
     assert stderr =~ "format"
     assert stderr =~ "csv, ofx"
-    assert stdout =~ "Usage: fin import <account> [options]"
-    refute stderr =~ "Usage:"
+    assert stderr =~ "Usage: fin import <account> [options]"
+    assert stdout == ""
   end
 
   defp collect_writes(acc) do

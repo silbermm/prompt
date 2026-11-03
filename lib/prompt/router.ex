@@ -33,6 +33,9 @@ defmodule Prompt.Router do
   available) followed by generated usage. Override `c:help/0` or
   `c:command_help/1` to change this.
 
+  `--help` output goes to stdout and exits 0. When parsing fails, the reason
+  and the generated usage of the command go to stderr and the exit code is 1.
+
   ## Distributing as an escript
 
   Escripts strip documentation chunks by default, so `@moduledoc` text is not
@@ -112,14 +115,15 @@ defmodule Prompt.Router do
   @callback run([binary()]) :: non_neg_integer()
 
   @doc """
-  Prints help to the screen when there is an error, or `--help` is passed as an argument. 
+  Prints help to stdout when `--help` is passed as an argument.
 
   Overridable
   """
   @callback help() :: non_neg_integer()
 
   @doc """
-  Prints help to the screen when there is an error with a string indicating the error
+  Prints the error reason and the router usage to stderr, for example when no
+  command matches and there is no fallback command.
 
   Overridable
   """
@@ -224,7 +228,7 @@ defmodule Prompt.Router do
 
           {:error, reason, %CommandSpec{} = spec} ->
             display(reason, color: :red, device: :stderr)
-            _ = command_help(spec)
+            :ok = __print_command_usage__(spec, :stderr)
             handle_exit_value(1)
 
           {:error, reason, nil} ->
@@ -252,15 +256,25 @@ defmodule Prompt.Router do
       @impl true
       def help(reason) do
         display(reason, color: :red, device: :stderr)
-        display(Usage.router_help(__MODULE__, @app, @prompt_help, __commands__()))
+
+        display(Usage.router_help(__MODULE__, @app, @prompt_help, __commands__()),
+          device: :stderr
+        )
+
         1
       end
 
       @impl true
       def command_help(%CommandSpec{} = spec) do
-        path = if to_string(spec.name) == "", do: [], else: [to_string(spec.name)]
-        display(Usage.command_help(spec.module, @app, path, spec))
+        :ok = __print_command_usage__(spec, :stdio)
         0
+      end
+
+      # Parse errors print usage to stderr, --help prints it to stdout.
+      defp __print_command_usage__(%CommandSpec{} = spec, device) do
+        path = if to_string(spec.name) == "", do: [], else: [to_string(spec.name)]
+        _ = display(Usage.command_help(spec.module, @app, path, spec), device: device)
+        :ok
       end
 
       @impl true
@@ -295,7 +309,11 @@ defmodule Prompt.Router do
             0
 
           {:error, :unsupported} ->
-            display("Completions for #{shell} are not supported", color: :yellow)
+            display("Completions for #{shell} are not supported",
+              color: :yellow,
+              device: :stderr
+            )
+
             1
         end
       end
