@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `select/3` now returns `:error` at end of input (and on a read error) instead of the string `"ERR: ..."`
 
 ### Added
+  - Generated usage: `--help` after a command prints the command module's `@moduledoc` (when available) then its arguments and options, and a parse error prints the reason followed by that usage. The router's `help/0` prints the `help:` option, then its `@moduledoc`, then generated usage; "Help not available" is gone. New overridable `command_help/1` callback
   - Router commands parse `positional/3` arguments; a `multiple: true` positional collects the remaining values into a list
   - `required: true` on `arg` and `positional`: a missing argument prints `missing required argument ...` and exits 1
   - `in:` on `arg` and `positional`: a value outside the list prints `invalid value ...` and exits 1

@@ -25,6 +25,21 @@ defmodule Prompt.Router do
   ## Arguments
   See `arg/3`
 
+  ## Help
+
+  `help/0` prints, in order of priority, the `help:` option given to
+  `use Prompt.Router`, this module's `@moduledoc`, or usage generated from the
+  commands. `command --help` prints the command module's `@moduledoc` (when
+  available) followed by generated usage. Override `c:help/0` or
+  `c:command_help/1` to change this.
+
+  ## Distributing as an escript
+
+  Escripts strip documentation chunks by default, so `@moduledoc` text is not
+  available at runtime. Add `strip_beams: [keep: ["Docs"]]` to the `escript:`
+  options in `mix.exs` if you want moduledoc text in help. It is needed only
+  for that: generated usage and the `help:` option work without it.
+
   ## Example
 
   ```elixir
@@ -78,7 +93,7 @@ defmodule Prompt.Router do
 
   """
 
-  alias Prompt.Router.{ArgSpec, CommandSpec, Parser}
+  alias Prompt.Router.{ArgSpec, CommandSpec, Parser, Usage}
 
   @doc """
   The entry point for an escript or release. Calls `c:run/1` with the command
@@ -109,6 +124,15 @@ defmodule Prompt.Router do
   Overridable
   """
   @callback help(String.t()) :: non_neg_integer()
+
+  @doc """
+  Prints the usage of one command to the screen when `--help` is passed after
+  it. The default prints the command module's `@moduledoc` when docs are
+  available, then the generated usage.
+
+  Overridable
+  """
+  @callback command_help(CommandSpec.t()) :: non_neg_integer()
 
   @doc """
   Prints the version from the projects mix.exs file
@@ -193,11 +217,18 @@ defmodule Prompt.Router do
         end
 
         case Prompt.Router.process(args, commands) do
-          # C3 replaces the router help below with per-command usage from the spec
-          {:help, _spec} ->
+          {:help, %CommandSpec{} = spec} ->
+            handle_exit_value(command_help(spec))
+
+          {:help, nil} ->
             handle_exit_value(help())
 
-          {:error, reason, _spec} ->
+          {:error, reason, %CommandSpec{} = spec} ->
+            display(reason, color: :red, device: :stderr)
+            _ = command_help(spec)
+            handle_exit_value(1)
+
+          {:error, reason, nil} ->
             handle_exit_value(help(reason))
 
           :version ->
@@ -215,31 +246,22 @@ defmodule Prompt.Router do
 
       @impl true
       def help do
-        help =
-          case Code.fetch_docs(__MODULE__) do
-            {:docs_v1, _, :elixir, _, :none, _, _} -> "Help not available"
-            {:docs_v1, _, :elixir, _, %{"en" => module_doc}, _, _} -> module_doc
-            {:error, _} -> "Help not available"
-            _ -> "Help not available"
-          end
-
-        display(help)
+        display(Usage.router_help(__MODULE__, @app, @prompt_help, __commands__()))
         0
       end
 
       @impl true
       def help(reason) do
-        help =
-          case Code.fetch_docs(__MODULE__) do
-            {:docs_v1, _, :elixir, _, :none, _, _} -> "Help not available"
-            {:docs_v1, _, :elixir, _, %{"en" => module_doc}, _, _} -> module_doc
-            {:error, _} -> "Help not available"
-            _ -> "Help not available"
-          end
-
         display(reason, color: :red, device: :stderr)
-        display(help)
+        display(Usage.router_help(__MODULE__, @app, @prompt_help, __commands__()))
         1
+      end
+
+      @impl true
+      def command_help(%CommandSpec{} = spec) do
+        path = if to_string(spec.name) == "", do: [], else: [to_string(spec.name)]
+        display(Usage.command_help(spec.module, @app, path, spec))
+        0
       end
 
       @impl true
@@ -335,6 +357,7 @@ defmodule Prompt.Router do
 
       defoverridable help: 0
       defoverridable help: 1
+      defoverridable command_help: 1
       defoverridable version: 0
       defoverridable handle_exit_value: 1
       defoverridable generate_completions: 1
