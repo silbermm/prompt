@@ -165,4 +165,16 @@ defmodule Prompt.Router.UsageTest do
       0 -> Enum.reverse(acc)
     end
   end
+
+  test "an underscore flag is shown with a dash" do
+    spec = %CommandSpec{
+      name: :import,
+      module: nil,
+      args: [ArgSpec.new!(:dry_run, :boolean, :flag, short: :d)]
+    }
+
+    out = Usage.command(:fin, ["import"], spec)
+    assert out =~ "-d, --dry-run"
+    refute out =~ "dry_run"
+  end
 end

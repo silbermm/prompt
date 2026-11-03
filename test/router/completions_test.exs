@@ -109,4 +109,23 @@ defmodule Prompt.Router.CompletionsTest do
     assert script =~ "-s v -l verbose"
     assert script =~ "-s g -l group"
   end
+
+  defmodule Underscore do
+    use Prompt.Router, otp_app: :prompt
+
+    command :sync, NoopCommand do
+      arg(:dry_run, :boolean, short: :d)
+      arg(:log_level, :string, in: ["info", "debug"])
+    end
+  end
+
+  for shell <- ["zsh", "bash", "fish"] do
+    test "#{shell}: underscore flags complete with a dash" do
+      {:ok, script} = Completions.generate(unquote(shell), :prompt, Underscore.__commands__())
+      assert script =~ "dry-run"
+      assert script =~ "log-level"
+      refute script =~ "dry_run"
+      refute script =~ "log_level"
+    end
+  end
 end

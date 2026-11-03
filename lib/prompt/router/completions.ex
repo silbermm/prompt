@@ -146,13 +146,15 @@ defmodule Prompt.Router.Completions do
 
   defp zsh_flags(command) do
     for arg <- flags(command), into: "" do
-      value = if choices = choices(arg), do: ":#{arg.name}:(#{choices})", else: ""
-      long = "\"--#{arg.name}[]#{value}\" "
+      name = ArgSpec.flag_name(arg)
+      value = if choices = choices(arg), do: ":#{name}:(#{choices})", else: ""
+      long = "\"--#{name}[]#{value}\" "
       if arg.short, do: long <> "\"-#{arg.short}[]#{value}\" ", else: long
     end
   end
 
-  defp switches(arg), do: ["--#{arg.name}" | if(arg.short, do: ["-#{arg.short}"], else: [])]
+  defp switches(arg),
+    do: ["--#{ArgSpec.flag_name(arg)}" | if(arg.short, do: ["-#{arg.short}"], else: [])]
 
   defp bash_branch(command) do
     flags = flags(command)
@@ -185,7 +187,7 @@ defmodule Prompt.Router.Completions do
     for arg <- flags(command), into: "" do
       short = if arg.short, do: " -s #{arg.short}", else: ""
       values = if choices = choices(arg), do: " -xa '#{choices}'", else: ""
-      "complete -c #{app} #{condition}#{short} -l #{arg.name}#{values}\n"
+      "complete -c #{app} #{condition}#{short} -l #{ArgSpec.flag_name(arg)}#{values}\n"
     end
   end
 end

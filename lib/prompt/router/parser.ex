@@ -132,7 +132,7 @@ defmodule Prompt.Router.Parser do
   defp invalid_type(value, opt, opts) do
     name = opt_name(opt, opts)
     type = Keyword.get(opts[:strict], name)
-    ~s(invalid value "#{value}" for --#{name}, expected #{type})
+    ~s(invalid value "#{value}" for --#{ArgSpec.flag_name(name)}, expected #{type})
   end
 
   defp opt_name("--" <> long, _opts), do: long |> String.split("=", parts: 2) |> hd() |> to_atom()
@@ -245,7 +245,7 @@ defmodule Prompt.Router.Parser do
     end)
   end
 
-  defp label(%ArgSpec{kind: :flag, name: name}), do: "--#{name}"
+  defp label(%ArgSpec{kind: :flag} = spec), do: "--#{ArgSpec.flag_name(spec)}"
   defp label(%ArgSpec{name: name}), do: to_string(name)
 
   defp default_value(%{default: default}) when default != nil, do: default

@@ -165,4 +165,20 @@ defmodule Prompt.Router.ParserTest do
                Parser.parse(["--info"], [fallback])
     end
   end
+
+  describe "underscore flag names" do
+    test "an underscore flag is typed with a dash" do
+      cmd = spec(:c, [flag(:dry_run, :boolean)])
+      assert {:ok, __MODULE__, %{dry_run: true}} = Parser.parse(["c", "--dry-run"], [cmd])
+    end
+
+    test "error messages name the flag with a dash" do
+      cmd = spec(:c, [flag(:max_count, :integer), flag(:out_dir, :string, required: true)])
+
+      assert {:error, ~s(invalid value "abc" for --max-count, expected integer), cmd} ==
+               Parser.parse(["c", "--max-count", "abc"], [cmd])
+
+      assert {:error, "missing required argument --out-dir", cmd} == Parser.parse(["c"], [cmd])
+    end
+  end
 end

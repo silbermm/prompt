@@ -78,6 +78,15 @@ defmodule Prompt.Router.ArgSpec do
 
     struct!(__MODULE__, [name: name, type: type, kind: kind] ++ validated)
   end
+
+  @doc """
+  The name of a flag as it is typed on the command line, without the leading
+  dashes. Underscores become dashes, as `OptionParser` expects: `:dry_run`
+  becomes `"dry-run"`.
+  """
+  @spec flag_name(t() | atom()) :: String.t()
+  def flag_name(%__MODULE__{name: name}), do: flag_name(name)
+  def flag_name(name) when is_atom(name), do: name |> Atom.to_string() |> String.replace("_", "-")
 end
 
 defmodule Prompt.Router.CommandSpec do

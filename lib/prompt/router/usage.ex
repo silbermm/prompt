@@ -117,8 +117,8 @@ defmodule Prompt.Router.Usage do
     if required, do: base, else: "[" <> base <> "]"
   end
 
-  defp flag_label(%ArgSpec{name: name, short: nil}), do: "--#{name}"
-  defp flag_label(%ArgSpec{name: name, short: short}), do: "-#{short}, --#{name}"
+  defp flag_label(%ArgSpec{short: nil} = arg), do: "--#{ArgSpec.flag_name(arg)}"
+  defp flag_label(%ArgSpec{short: short} = arg), do: "-#{short}, --#{ArgSpec.flag_name(arg)}"
 
   defp description(%ArgSpec{} = arg) do
     [
