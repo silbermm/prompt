@@ -15,7 +15,24 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule Prompt.Router.ArgSpec do
-  @moduledoc false
+  @moduledoc """
+  One argument of a router command, built by `Prompt.Router.arg/3` or
+  `Prompt.Router.positional/3`. Read it in an override of
+  `c:Prompt.Router.command_help/1`; do not build it by hand.
+
+  Fields:
+
+    * `:name` - the atom key the parsed value is stored under. A flag is
+      typed with dashes, so `:dry_run` is `--dry-run`.
+    * `:type` - `:boolean`, `:string`, `:integer`, or `:float`.
+    * `:kind` - `:flag` for `--name` options, `:positional` for bare values.
+    * `:short` - the one letter alias of a flag, or `nil`.
+    * `:default` - the value used when a flag is not given, or `nil`.
+    * `:required` - whether the argument must be given.
+    * `:in` - the allowed values, or `nil` for any value.
+    * `:multiple` - whether a positional collects all remaining values.
+    * `:doc` - the description shown in usage, or `nil`.
+  """
 
   @type t :: %__MODULE__{
           name: atom(),
@@ -54,10 +71,9 @@ defmodule Prompt.Router.ArgSpec do
     doc: [type: :string]
   ]
 
-  @doc """
-  Builds an `ArgSpec`, validating `opts` against the options allowed for `kind`.
-  Raises `ArgumentError` on an invalid option.
-  """
+  @doc false
+  # Builds an `ArgSpec`, validating `opts` against the options allowed for
+  # `kind`. Raises `ArgumentError` on an invalid option.
   @spec new!(atom(), atom(), :flag | :positional, keyword()) :: t()
   def new!(name, type, kind, opts) when is_atom(name) and kind in [:flag, :positional] do
     unless type in [:boolean, :string, :integer, :float] do
@@ -103,18 +119,33 @@ defmodule Prompt.Router.ArgSpec do
     end
   end
 
-  @doc """
-  The name of a flag as it is typed on the command line, without the leading
-  dashes. Underscores become dashes, as `OptionParser` expects: `:dry_run`
-  becomes `"dry-run"`.
-  """
+  @doc false
+  # The name of a flag as it is typed on the command line, without the leading
+  # dashes. Underscores become dashes, as `OptionParser` expects: `:dry_run`
+  # becomes `"dry-run"`.
   @spec flag_name(t() | atom()) :: String.t()
   def flag_name(%__MODULE__{name: name}), do: flag_name(name)
   def flag_name(name) when is_atom(name), do: name |> Atom.to_string() |> String.replace("_", "-")
 end
 
 defmodule Prompt.Router.CommandSpec do
-  @moduledoc false
+  @moduledoc """
+  One command of a router, built by `Prompt.Router.command/2` and
+  `Prompt.Router.command/3`. It is passed to `c:Prompt.Router.command_help/1`
+  and to `Prompt.Router.Usage`; do not build it by hand.
+
+  Fields:
+
+    * `:name` - the command word as an atom or string, `""` for the fallback
+      command.
+    * `:module` - the `Prompt.Command` module that runs it, or `nil` for a
+      group that only holds subcommands.
+    * `:args` - the `Prompt.Router.ArgSpec` structs of its flags and
+      positionals, in definition order.
+    * `:subcommands` - nested `CommandSpec` structs, in definition order.
+    * `:parents` - the command words typed before this command's name, for
+      example `["categories"]` for `categories add`. `[]` at the top level.
+  """
 
   @type t :: %__MODULE__{
           name: atom() | String.t(),
