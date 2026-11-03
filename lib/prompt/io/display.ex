@@ -2,6 +2,7 @@ defmodule Prompt.IO.Display do
   @moduledoc false
 
   alias __MODULE__
+  alias Prompt.IO.Position
 
   import IO, only: [read: 2]
   import Prompt.IO.ANSI
@@ -88,7 +89,7 @@ defmodule Prompt.IO.Display do
         case read(:stdio, :line) do
           :eof -> :error
           {:error, _reason} -> :error
-          _ -> Prompt.IO.Position.mask_line(1)
+          _ -> Position.mask_line(1)
         end
       end
 

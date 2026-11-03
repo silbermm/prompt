@@ -39,13 +39,15 @@ end
 [Read the official documentation](https://hexdocs.pm/prompt/Prompt.html)
 
 ## Examples
-See [./lib/prompt/example.ex](example.ex) for some examples of usage.
+See [lib/prompt/io/examples.ex](lib/prompt/io/examples.ex) for runnable examples of each prompt type.
 
-To run the examples:
+Run one with `mix run`, for example:
 
-```elixir
-mix run -e "Prompt.Example.Commands.all()"
+```bash
+mix run -e "Prompt.IO.Examples.single_select()"
 ```
+
+The available examples are `text`, `password`, `single_select`, `multi_select`, and `display`.
 
 ## Basic Usage
 All of the following commands take a keyword list of options for things like text color and positioning.

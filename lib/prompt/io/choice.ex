@@ -3,6 +3,7 @@ defmodule Prompt.IO.Choice do
 
   alias __MODULE__
   alias IO.ANSI
+  alias Prompt.IO.Position
   import IO, only: [read: 2]
 
   @type t :: %Choice{
@@ -82,14 +83,14 @@ defmodule Prompt.IO.Choice do
 
         answer when is_binary(answer) ->
           if choice.mask_line do
-            Prompt.IO.Position.mask_line(1)
+            Position.mask_line(1)
           end
 
           _evaluate_choice(answer, choice)
 
         answer when is_list(answer) ->
           if choice.mask_line do
-            Prompt.IO.Position.mask_line(1)
+            Position.mask_line(1)
           end
 
           _evaluate_choice(IO.chardata_to_string(answer), choice)

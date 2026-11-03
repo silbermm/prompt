@@ -3,54 +3,28 @@ defmodule Prompt.IO.PasswordTest do
 
   alias Prompt.IO.Password
   alias Prompt.IO.Terminal
-
   import Mox
+
   setup :verify_on_exit!
 
   test "when background color is set, then the ANSI escape sequence is printed" do
-    visible_content = "Enter Password"
-
     expect(Prompt.IO.Mock, :write, fn io ->
-      assert [
-               [
-                 [
-                   [[[[[] | _] | _], "\e[39m"], ^visible_content] | _
-                 ],
-                 "\e[8m"
-               ]
-               | _
-             ] = io
-
+      assert IO.iodata_to_binary(io) == "\e[0m\e[45m\e[39mEnter Password: \e[8m\e[0m"
       :ok
     end)
 
-    visible_content
+    "Enter Password"
     |> Password.new(background_color: :magenta)
     |> Terminal.display()
   end
 
   test "when text color is set, then the ANSI escape sequence is printed" do
-    visible_content = "Enter Password"
-
     expect(Prompt.IO.Mock, :write, fn io ->
-      assert [
-               [
-                 [
-                   [
-                     [[[[] | _], "\e[49m"] | "\e[35m"],
-                     ^visible_content
-                   ],
-                   ": "
-                 ],
-                 "\e[8m"
-               ]
-               | _
-             ] = io
-
+      assert IO.iodata_to_binary(io) == "\e[0m\e[49m\e[35mEnter Password: \e[8m\e[0m"
       :ok
     end)
 
-    visible_content
+    "Enter Password"
     |> Password.new(color: :magenta)
     |> Terminal.display()
   end

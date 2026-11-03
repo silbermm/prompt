@@ -1,12 +1,18 @@
 when:
-  - evaluate: 'not (CI_COMMIT_MESSAGE contains "SKIPCI")'
+  - event: pull_request
+    evaluate: 'not (CI_COMMIT_MESSAGE contains "SKIPCI")'
 
 steps:
-  - name: run_dialyzer
-    image: codeberg.org/ahappydeath/prompt-base:latest
+  - name: dialyzer
+    image: nixos/nix
+    environment:
+      NIX_CONFIG: "experimental-features = nix-command flakes"
     commands:
-      - mix deps.get
-      - mix compile --warnings-as-errors
-      - mix dialyzer
-    when:
-      - event: pull_request
+      - |
+        nix develop path:.#ci --command sh -ec '
+          mix local.hex --force
+          mix local.rebar --force
+          mix deps.get
+          mix compile --warnings-as-errors
+          mix dialyzer
+        '

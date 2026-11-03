@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - New `select` experience using Erlang 28 'raw' shell support
 
 ### Removed
+  - `.tool-versions`
   - Livebook example
 
 ## [0.10.1](https://codeberg.org/ahappydeath/prompt/releases/tag/v0.10.1) - 2025-01-31

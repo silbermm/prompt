@@ -1,11 +1,18 @@
+when:
+  - event: release
+
 steps:
-  - name: build and push image
-    image: codeberg.org/ahappydeath/prompt-base:latest 
-    commands:
-      - mix deps.get
-      - mix hex.publish --yes 
+  - name: publish
+    image: nixos/nix
     environment:
+      NIX_CONFIG: "experimental-features = nix-command flakes"
       HEX_API_KEY:
         from_secret: hex_api_key
-    when:
-      - event: release
+    commands:
+      - |
+        nix develop path:.#ci --command sh -ec '
+          mix local.hex --force
+          mix local.rebar --force
+          mix deps.get
+          mix hex.publish --yes
+        '
