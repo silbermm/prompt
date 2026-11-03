@@ -22,6 +22,33 @@ defmodule Prompt.Router.SpecTest do
     end
   end
 
+  defmodule OtherCommand do
+    use Prompt.Command
+
+    @impl true
+    def init(argv), do: argv
+
+    @impl true
+    def process(_), do: :ok
+  end
+
+  defmodule OrderRouter do
+    use Prompt.Router, otp_app: :prompt
+
+    command(:zeta, SomeCommand)
+    command(:alpha, SomeCommand)
+    command(:mid, SomeCommand)
+    command(:alpha, OtherCommand)
+  end
+
+  test "__commands__/0 returns top-level commands in definition order" do
+    assert Enum.map(OrderRouter.__commands__(), & &1.name) == [:zeta, :alpha, :mid, :alpha]
+  end
+
+  test "with duplicate command names the first definition wins" do
+    assert {:ok, SomeCommand, _} = Prompt.Router.process(["alpha"], OrderRouter.__commands__())
+  end
+
   test "arg builds a flag spec" do
     assert %ArgSpec{name: :group, kind: :flag, required: true, in: ["a", "b"]} =
              ArgSpec.new!(:group, :string, :flag, required: true, in: ["a", "b"])

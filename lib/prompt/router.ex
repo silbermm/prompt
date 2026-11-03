@@ -193,7 +193,6 @@ defmodule Prompt.Router do
         |> Keyword.get(:attributes, [])
         |> Keyword.get_values(:commands)
         |> List.flatten()
-        |> Enum.reverse()
       end
 
       @impl true

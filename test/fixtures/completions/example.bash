@@ -10,16 +10,16 @@ _prompt() {
 	fi
 
 	if [ "$COMP_CWORD" -eq 1 ]; then
-		COMPREPLY=( $(compgen -W "test fail --help --version --completion" -- "$cur") )
+		COMPREPLY=( $(compgen -W "fail test --help --version --completion" -- "$cur") )
 		return
 	fi
 
 	case "$cmd" in
-		test)
-			COMPREPLY=( $(compgen -W "--help" -- "$cur") )
-			;;
 		fail)
 			COMPREPLY=( $(compgen -W "" -- "$cur") )
+			;;
+		test)
+			COMPREPLY=( $(compgen -W "--help" -- "$cur") )
 			;;
 	esac
 }
