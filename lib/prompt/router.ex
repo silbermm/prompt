@@ -68,8 +68,9 @@ defmodule Prompt.Router do
     def process(arguments) do
       # arguments will have a key of `:leftover` for anything
       # passed to the command that doesn't have a `arg` defined.
-      # IF someone called this with `--info --test something`, then then
-      # arguments will look like `%{info: true, leftover: ["--test", "something"]}`
+      # If someone called this with `--info --test something`, then
+      # arguments will look like `%{info: true, leftover: ["something", "--test"]}`:
+      # unused positional values first, then unknown flags as typed
       display("showing info")
     end
   end
@@ -77,7 +78,7 @@ defmodule Prompt.Router do
 
   """
 
-  alias Prompt.Router.ArgSpec
+  alias Prompt.Router.{ArgSpec, CommandSpec, Parser}
 
   @doc """
   The entry point for an escript or release. Calls `c:run/1` with the command
@@ -192,10 +193,11 @@ defmodule Prompt.Router do
         end
 
         case Prompt.Router.process(args, commands) do
-          :help ->
+          # C3 replaces the router help below with per-command usage from the spec
+          {:help, _spec} ->
             handle_exit_value(help())
 
-          {:help, reason} ->
+          {:error, reason, _spec} ->
             handle_exit_value(help(reason))
 
           :version ->
@@ -204,7 +206,7 @@ defmodule Prompt.Router do
           {:completion, shell} ->
             handle_exit_value(generate_completions(shell))
 
-          {mod, data} ->
+          {:ok, mod, data} ->
             transformed = mod.init(data)
             result = mod.process(transformed)
             handle_exit_value(result)
@@ -235,7 +237,7 @@ defmodule Prompt.Router do
             _ -> "Help not available"
           end
 
-        display(reason, color: :red)
+        display(reason, color: :red, device: :stderr)
         display(help)
         1
       end
@@ -340,100 +342,8 @@ defmodule Prompt.Router do
   end
 
   @doc false
-  def process(argv, commands) do
-    # first figure out which command was passed in
-    argv
-    |> OptionParser.parse_head(
-      switches: [help: :boolean, version: :boolean, completion: :string],
-      aliases: [h: :help, v: :version]
-    )
-    |> parse_opts(commands, argv)
-  end
-
-  # if help or version were passed, process them and exit
-  defp parse_opts({[help: true], _, _}, _, _), do: :help
-  defp parse_opts({[version: true], _, _}, _, _), do: :version
-  defp parse_opts({[completion: shell], _, _}, _, _), do: {:completion, shell}
-
-  defp parse_opts({_, additional, _}, defined_commands, original) do
-    case additional do
-      [head | rest] ->
-        # if there is an array of data, then a subcommand was passed in
-        command = find_in_defined_commands(defined_commands, head)
-
-        if command == nil do
-          # the passed in command or option is not recognized, try the fallback
-          # passing the data as options
-          fallback_command(original, defined_commands)
-        else
-          # process the options for the module
-          switches = build_parser_switches(command)
-          aliases = build_parser_aliases(command)
-
-          {parsed, leftover, _} =
-            OptionParser.parse_head(rest, switches: switches, aliases: aliases)
-
-          data = build_command_data(command, parsed, leftover)
-          {command.module, data}
-        end
-
-      [] ->
-        # no subcommand was passed in try the fallback module
-        fallback_command(original, defined_commands)
-    end
-  end
-
-  defp fallback_command(original_args, defined_commands) do
-    # no subcommand was passed in try the fallback module
-    fallback = find_in_defined_commands(defined_commands, "")
-
-    if fallback == nil do
-      {:help, "invalid flag or command"}
-    else
-      switches = build_parser_switches(fallback)
-      {parsed, leftover, _} = OptionParser.parse(original_args, switches: switches)
-      data = build_command_data(fallback, parsed, leftover)
-      {fallback.module, data}
-    end
-  end
-
-  defp find_in_defined_commands(defined_commands, "") do
-    Enum.find(defined_commands, fn
-      %{name: ""} -> true
-      _ -> false
-    end)
-  end
-
-  defp find_in_defined_commands(defined_commands, command_value) do
-    Enum.find(defined_commands, fn
-      %{name: command_name_atom} -> command_value == to_string(command_name_atom)
-      _ -> false
-    end)
-  end
-
-  defp build_parser_switches(command) do
-    Enum.map(command.args, &{&1.name, &1.type})
-  end
-
-  defp build_parser_aliases(command) do
-    for %{short: short} = arg <- command.args, short != nil, do: {short, arg.name}
-  end
-
-  defp build_command_data(command, parsed, leftover) do
-    command.args
-    |> Enum.reduce(%{}, fn arg, acc ->
-      Map.put_new(acc, arg.name, Keyword.get(parsed, arg.name, default_value(arg)))
-    end)
-    |> Map.put_new(:leftover, leftover)
-  end
-
-  defp default_value(%{default: default}) when default != nil, do: default
-  defp default_value(%{type: type}), do: type_default(type)
-
-  defp type_default(:boolean), do: false
-  defp type_default(:string), do: ""
-  defp type_default(:integer), do: nil
-  defp type_default(:float), do: nil
+  @spec process([String.t()], [CommandSpec.t()]) :: Parser.result()
+  def process(argv, commands), do: Parser.parse(argv, commands)
 
   @doc """
   Name of the subcommand that is expectedaany()

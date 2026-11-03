@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 ### Changed
+  - **BREAKING:** command flags may now appear after positional values; unknown flags still land in :leftover
+  - Router parse errors (an unknown command with no fallback, a missing required argument, a value outside `in:`) print the reason to stderr
   - Router commands and args are now validated `CommandSpec`/`ArgSpec` structs; an unknown option to `arg` fails compilation. Added `positional/3`, `__commands__/0`, and the `help:` option to `use Prompt.Router`
 ### Fixed
   - Cleaned up all Credo reported issues
@@ -15,6 +17,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `select/3` now returns `:error` at end of input (and on a read error) instead of the string `"ERR: ..."`
 
 ### Added
+  - Router commands parse `positional/3` arguments; a `multiple: true` positional collects the remaining values into a list
+  - `required: true` on `arg` and `positional`: a missing argument prints `missing required argument ...` and exits 1
+  - `in:` on `arg` and `positional`: a value outside the list prints `invalid value ...` and exits 1
+  - A value that does not parse as the `:integer` or `:float` type of its `arg` or `positional` prints `invalid value ...` and exits 1
+  - `--help` and `-h` after a command that defines no `:help` arg print help and exit 0
   - `run/1` on routers: dispatches like `main/1` but returns the exit code instead of halting, and `use Prompt.Router, halt: false` makes `main/1` return the code too
 
 ### Changed
