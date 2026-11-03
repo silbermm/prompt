@@ -26,8 +26,7 @@ defmodule Prompt.Router.RunTest do
   end
 
   test "an error prints the reason to stderr, not stdout, and returns 1" do
-    # Nesting capture_io(:stderr) around a :stdio display crashes user_drv
-    # without a TTY, so record writes through the mock instead.
+    # Record writes through the mock to see which device each one went to.
     Application.put_env(:prompt, :io, Prompt.IO.Mock)
     test_pid = self()
 
@@ -62,5 +61,16 @@ defmodule Prompt.Router.RunTest do
 
     assert capture_io(fn -> assert RunRouter.run(["search", "milk"]) == 0 end) =~
              "searching milk"
+  end
+
+  test "an error run nested in capture_io(:stderr) does not crash and returns 1" do
+    Application.put_env(:prompt, :io, IO)
+
+    stderr =
+      capture_io(:stderr, fn ->
+        capture_io(fn -> assert RunRouter.run(["search"]) == 1 end)
+      end)
+
+    assert stderr =~ "missing required argument text"
   end
 end
