@@ -17,7 +17,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `select/3` now returns `:error` at end of input (and on a read error) instead of the string `"ERR: ..."`
 
 ### Added
-  - Bash and fish completions (`--completion bash`, `--completion fish`) alongside zsh; completions cover command names, flags, short flags, and `in:` values, and positionals no longer appear as flags
   - Generated usage: `--help` after a command prints the command module's `@moduledoc` (when available) then its arguments and options, and a parse error prints the reason followed by that usage. The router's `help/0` prints the `help:` option, then its `@moduledoc`, then generated usage; "Help not available" is gone. New overridable `command_help/1` callback
   - Router commands parse `positional/3` arguments; a `multiple: true` positional collects the remaining values into a list
   - `required: true` on `arg` and `positional`: a missing argument prints `missing required argument ...` and exits 1
@@ -25,6 +24,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - A value that does not parse as the `:integer` or `:float` type of its `arg` or `positional` prints `invalid value ...` and exits 1
   - `--help` and `-h` after a command that defines no `:help` arg print help and exit 0
   - `run/1` on routers: dispatches like `main/1` but returns the exit code instead of halting, and `use Prompt.Router, halt: false` makes `main/1` return the code too
+  - Flake with a dev shell for development
+  - `device:` option on `display/2` and `table/2` (`:stdio` or `:stderr`)
+  - New `select` experience using Erlang 28 'raw' shell support
+  - Bash and fish completions (`--completion bash`, `--completion fish`) alongside zsh; completions cover command names, flags, short flags, and `in:` values, and positionals no longer appear as flags
 
 ### Changed
   - Changed the way `display/2` handles iolists - Instead of writing each
@@ -34,12 +37,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `{:error, reason}` returned from a command now prints the reason to stderr
   - **BREAKING:** moved `Prompt.Position` to `Prompt.IO.Position`
   - **BREAKING:** removed `Prompt.IO.write/1`. The `Prompt.IO` callback is now `write/2` (`device`, `iodata`), matching `IO.write/2`, so custom `:io` modules must implement `write/2`
-
-### Added
-  - Bash and fish completions (`--completion bash`, `--completion fish`) alongside zsh; completions cover command names, flags, short flags, and `in:` values, and positionals no longer appear as flags
-  - Flake with a dev shell for development
-  - `device:` option on `display/2` and `table/2` (`:stdio` or `:stderr`)
-  - New `select` experience using Erlang 28 'raw' shell support
 
 ### Removed
   - `.tool-versions`
@@ -52,7 +49,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - nimble_options (1.1.1)
 
 ### Added
-  - Bash and fish completions (`--completion bash`, `--completion fish`) alongside zsh; completions cover command names, flags, short flags, and `in:` values, and positionals no longer appear as flags
   - Generated command `--complete` that will build a simple zsh completion script
 
 ## [0.10.0]
@@ -66,12 +62,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.9.3]
 ### Added
-  - Bash and fish completions (`--completion bash`, `--completion fish`) alongside zsh; completions cover command names, flags, short flags, and `in:` values, and positionals no longer appear as flags
   - Allow for border-less tables
 
 ## [0.9.2] - 2023-07-31
 ### Added
-  - Bash and fish completions (`--completion bash`, `--completion fish`) alongside zsh; completions cover command names, flags, short flags, and `in:` values, and positionals no longer appear as flags
   - a `short` option for arguments
 
 ## [0.9.1] - 2023-07-17
@@ -84,7 +78,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.8.1] - 2022-12-13
 ### Added
-  - Bash and fish completions (`--completion bash`, `--completion fish`) alongside zsh; completions cover command names, flags, short flags, and `in:` values, and positionals no longer appear as flags
   - Better support for halting the runtime when a command is finished
     - a new callback `handle_exit_value/1` that is overrideable and called after each command is done.
 
@@ -95,12 +88,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.7.4] - 2022-06-06
 ### Added
-  - Bash and fish completions (`--completion bash`, `--completion fish`) alongside zsh; completions cover command names, flags, short flags, and `in:` values, and positionals no longer appear as flags
   - min and max validations for text entry
 
 ## [0.6.3] - 2021-11-28
 ### Added
-  - Bash and fish completions (`--completion bash`, `--completion fish`) alongside zsh; completions cover command names, flags, short flags, and `in:` values, and positionals no longer appear as flags
   - use NimbleOptions to validate options
   - background_color as an option for displaying text
 
@@ -123,14 +114,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.6.1] - 2021-10-21
 ### Added
-  - Bash and fish completions (`--completion bash`, `--completion fish`) alongside zsh; completions cover command names, flags, short flags, and `in:` values, and positionals no longer appear as flags
   - Many more tests
   - Livebook notebook with an example
   -
 
 ## [0.6.0] - 2021-10-17
 ### Added
-  - Bash and fish completions (`--completion bash`, `--completion fish`) alongside zsh; completions cover command names, flags, short flags, and `in:` values, and positionals no longer appear as flags
   - a `help/0` callback and the ability to override
 
 ### Changed

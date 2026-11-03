@@ -19,7 +19,7 @@ defmodule Prompt.Router.CompletionsTest do
 
     command :find, NoopCommand do
       arg(:verbose, :boolean, short: :v)
-      arg(:group, :string, in: ["a", "b"])
+      arg(:group, :string, short: :g, in: ["a", "b"])
       positional(:files, :string, multiple: true)
     end
 
@@ -69,7 +69,6 @@ defmodule Prompt.Router.CompletionsTest do
       {:ok, script} = Completions.generate(unquote(shell), :prompt, Rich.__commands__())
       refute script =~ "files"
       assert script =~ "verbose"
-      assert script =~ ~r/-v|-s v/
       assert script =~ "group"
       assert script =~ "a b"
     end
@@ -84,12 +83,30 @@ defmodule Prompt.Router.CompletionsTest do
     {:ok, script} = Completions.generate("fish", :prompt, Rich.__commands__())
 
     assert script =~
-             "complete -c prompt -n '__fish_seen_subcommand_from find' -l group -xa 'a b'"
+             "complete -c prompt -n '__fish_seen_subcommand_from find' -s g -l group -xa 'a b'"
   end
 
   test "bash registers a compgen based completion function" do
     {:ok, script} = Completions.generate("bash", :prompt, Rich.__commands__())
     assert script =~ "complete -F _prompt prompt"
     assert script =~ "compgen -W"
+  end
+
+  test "zsh emits short flags" do
+    {:ok, script} = Completions.generate("zsh", :prompt, Rich.__commands__())
+    assert script =~ "\"--verbose[]\" \"-v[]\""
+    assert script =~ "\"-g[]:group:(a b)\""
+  end
+
+  test "bash emits short flags in the word list and the in: case label" do
+    {:ok, script} = Completions.generate("bash", :prompt, Rich.__commands__())
+    assert script =~ "-W \"--verbose -v --group -g\""
+    assert script =~ "--group|-g)"
+  end
+
+  test "fish emits short flags" do
+    {:ok, script} = Completions.generate("fish", :prompt, Rich.__commands__())
+    assert script =~ "-s v -l verbose"
+    assert script =~ "-s g -l group"
   end
 end
