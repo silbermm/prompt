@@ -54,7 +54,8 @@ defmodule Prompt.Router.CompletionsTest do
   end
 
   test "run with an unsupported shell returns 1" do
-    capture_io(fn -> assert Example.run(["--completion", "tcsh"]) == 1 end)
+    assert capture_io(:stderr, fn -> assert Example.run(["--completion", "tcsh"]) == 1 end) =~
+             "Completions for tcsh are not supported"
   end
 
   test "bash and fish scripts are printed with exit code 0" do
