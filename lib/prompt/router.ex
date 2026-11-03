@@ -93,7 +93,7 @@ defmodule Prompt.Router do
 
   """
 
-  alias Prompt.Router.{ArgSpec, CommandSpec, Parser, Usage}
+  alias Prompt.Router.{ArgSpec, CommandSpec, Completions, Parser, Usage}
 
   @doc """
   The entry point for an escript or release. Calls `c:run/1` with the command
@@ -160,7 +160,7 @@ defmodule Prompt.Router do
   The default behaviour for this is to write the completion script to the
   screen.
 
-  zsh is supported out of the box. If other completion scripts are required,
+  zsh, bash and fish are supported out of the box. For other shells,
   this callback will need to be implemented.
 
   see https://github.com/zsh-users/zsh-completions/blob/master/zsh-completions-howto.org
@@ -288,71 +288,17 @@ defmodule Prompt.Router do
 
       def handle_exit_value(_anything_else), do: 2
 
-      def generate_completions("zsh") do
-        commands =
-          __commands__()
-
-        args =
-          for command <- commands, into: "" do
-            "#{command.name}\u005c:'' "
-          end
-
-        line = "\"1: :((#{args}))\" \\"
-
-        cases =
-          for command <- commands, command.name != "", into: "" do
-            ~s"""
-            \t#{command.name})
-            \t\t_#{@app}_#{command.name}
-            \t;;
-            """
-          end
-
-        funcs =
-          for command <- commands, command.name != "", into: "" do
-            ~s"""
-            function _#{@app}_#{command.name} {
-            \t_arguments \\
-            \t\t#{for arg <- command.args, into: "" do
-              "\"--#{arg.name}[]\" "
-            end} 
-            }
-
-            """
-          end
-
-        base = """
-        #compdef #{@app}
-        local line
-
-        _arguments -C \\
-        \t"--help[Show help information]" \\
-        \t"--version[Show version information]" \\
-        \t"--completion[Generate completion script]:shell_name:->shell_names" \\
-        \t#{line} 
-        \t"*::arg:->args"
-
-        case "$state" in
-        \tshell_names)
-        \t\t_values 'shell_names' zsh bash fish
-        \t;;
-        esac
-
-        case $line[1] in
-          #{cases} 
-        esac
-
-        #{funcs}
-        """
-
-        display(base)
-        0
-      end
-
       @impl true
       def generate_completions(shell) do
-        display("Completions for #{shell} are not supported", color: :yellow)
-        1
+        case Completions.generate(shell, @app, __commands__()) do
+          {:ok, script} ->
+            display(script)
+            0
+
+          {:error, :unsupported} ->
+            display("Completions for #{shell} are not supported", color: :yellow)
+            1
+        end
       end
 
       defoverridable help: 0
