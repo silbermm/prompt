@@ -396,7 +396,7 @@ defmodule Prompt.Router do
     * default - a default value if the user doesn't use this option
     * short   - an optional short argument option i.e `short: :h` would all the user to type `-h`
     * required - the flag must be given
-    * in      - a list of allowed values
+    * in      - a list of allowed values of the arg type, e.g. strings for `:string`
     * doc     - a description used in help
 
   An unknown option raises at compile time.
@@ -413,7 +413,7 @@ defmodule Prompt.Router do
   ## Options
     * required - the argument must be given
     * multiple - collects all remaining values, only allowed on the last positional
-    * in       - a list of allowed values
+    * in       - a list of allowed values of the arg type, e.g. strings for `:string`
     * doc      - a description used in help
   """
   defmacro positional(arg_name, arg_type, opts \\ []) do

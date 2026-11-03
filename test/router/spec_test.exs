@@ -54,6 +54,40 @@ defmodule Prompt.Router.SpecTest do
              ArgSpec.new!(:group, :string, :flag, required: true, in: ["a", "b"])
   end
 
+  test "in: values that do not match the arg type raise" do
+    assert_raise ArgumentError, ~r/in: values for flag :group must be strings/, fn ->
+      ArgSpec.new!(:group, :string, :flag, in: [:a, :b])
+    end
+
+    assert_raise ArgumentError, ~r/in: values for positional :count must be integers/, fn ->
+      ArgSpec.new!(:count, :integer, :positional, in: [1, "2"])
+    end
+
+    assert_raise ArgumentError, ~r/must be floats/, fn ->
+      ArgSpec.new!(:ratio, :float, :flag, in: [1, 2])
+    end
+  end
+
+  test "in: values that match the arg type are accepted" do
+    assert %ArgSpec{in: ["a"]} = ArgSpec.new!(:group, :string, :flag, in: ["a"])
+    assert %ArgSpec{in: [1, 2]} = ArgSpec.new!(:count, :integer, :positional, in: [1, 2])
+    assert %ArgSpec{in: [0.5]} = ArgSpec.new!(:ratio, :float, :flag, in: [0.5])
+  end
+
+  test "in: with the wrong type fails router compilation" do
+    assert_raise ArgumentError, ~r/must be strings/, fn ->
+      Code.compile_string("""
+      defmodule Prompt.Router.SpecTest.BadInRouter do
+        use Prompt.Router, otp_app: :prompt
+
+        command :bad, Prompt.Router.SpecTest.SomeCommand do
+          arg :level, :string, in: [:info, :debug]
+        end
+      end
+      """)
+    end
+  end
+
   test "unknown arg option raises" do
     assert_raise ArgumentError, ~r/unknown options \[:requird\]/, fn ->
       ArgSpec.new!(:group, :string, :flag, requird: true)

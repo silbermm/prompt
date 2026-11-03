@@ -76,7 +76,31 @@ defmodule Prompt.Router.ArgSpec do
                 "invalid options for #{kind} #{inspect(name)}: " <> Exception.message(error)
       end
 
+    check_in_values!(name, type, kind, validated[:in])
+
     struct!(__MODULE__, [name: name, type: type, kind: kind] ++ validated)
+  end
+
+  # Parsed values are compared to in: with `in`, so `:info` never matches the
+  # string "info". Catch the mismatch at compile time instead.
+  defp check_in_values!(_name, :boolean, _kind, _values), do: :ok
+  defp check_in_values!(_name, _type, _kind, nil), do: :ok
+
+  defp check_in_values!(name, type, kind, values) do
+    {check, plural} =
+      case type do
+        :string -> {&is_binary/1, "strings"}
+        :integer -> {&is_integer/1, "integers"}
+        :float -> {&is_float/1, "floats"}
+      end
+
+    if Enum.all?(values, check) do
+      :ok
+    else
+      raise ArgumentError,
+            "in: values for #{kind} #{inspect(name)} must be #{plural} to match its " <>
+              "#{inspect(type)} type, got: #{inspect(values)}"
+    end
   end
 
   @doc """
