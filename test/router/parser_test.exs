@@ -97,6 +97,24 @@ defmodule Prompt.Router.ParserTest do
     end
   end
 
+  describe "repeated flags" do
+    test "the last occurrence of a flag wins" do
+      cmd = spec(:c, [flag(:limit, :integer), flag(:v, :boolean)])
+
+      assert {:ok, __MODULE__, %{limit: 2}} =
+               Parser.parse(["c", "--limit", "1", "--limit", "2"], [cmd])
+
+      assert {:ok, __MODULE__, %{v: false}} = Parser.parse(["c", "--v", "--no-v"], [cmd])
+    end
+
+    test "in: checks the last occurrence" do
+      cmd = spec(:c, [flag(:group, :string, in: ["a"])])
+
+      assert {:ok, __MODULE__, %{group: "a"}} =
+               Parser.parse(["c", "--group", "x", "--group", "a"], [cmd])
+    end
+  end
+
   describe "unknown flags and help" do
     test "an unknown flag lands in leftover" do
       add = spec(:add, [flag(:group, :string)])

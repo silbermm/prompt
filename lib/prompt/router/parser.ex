@@ -104,18 +104,28 @@ defmodule Prompt.Router.Parser do
   # OptionParser.parse/2 with strict: consumes the token after an unknown flag
   # and drops it, so walk the args with next/2 and keep unknown flags as typed.
   defp scan([], _opts, parsed, values, unknown),
-    do: {:ok, Enum.reverse(parsed), Enum.reverse(values), Enum.reverse(unknown)}
+    do: {:ok, parsed, Enum.reverse(values), Enum.reverse(unknown)}
 
   defp scan(["--" | rest], _opts, parsed, values, unknown),
     do: scan([], [], parsed, Enum.reverse(rest, values), unknown)
 
   defp scan([token | tail] = argv, opts, parsed, values, unknown) do
     case OptionParser.next(argv, opts) do
-      {:ok, key, value, rest} -> scan(rest, opts, [{key, value} | parsed], values, unknown)
-      {:undefined, _, _, _} -> scan(tail, opts, parsed, values, [token | unknown])
-      {:invalid, opt, nil, _} -> {:error, "missing value for #{opt}"}
-      {:invalid, opt, value, _} -> {:error, invalid_type(value, opt, opts)}
-      {:error, _} -> scan(tail, opts, parsed, [token | values], unknown)
+      # last occurrence wins, as OptionParser.parse/2 does for non-:keep switches
+      {:ok, key, value, rest} ->
+        scan(rest, opts, Keyword.put(parsed, key, value), values, unknown)
+
+      {:undefined, _, _, _} ->
+        scan(tail, opts, parsed, values, [token | unknown])
+
+      {:invalid, opt, nil, _} ->
+        {:error, "missing value for #{opt}"}
+
+      {:invalid, opt, value, _} ->
+        {:error, invalid_type(value, opt, opts)}
+
+      {:error, _} ->
+        scan(tail, opts, parsed, [token | values], unknown)
     end
   end
 
